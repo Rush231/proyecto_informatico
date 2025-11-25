@@ -13,3 +13,13 @@ def crear_usuario():
     email = datos['email']
     contrasena_plana = datos['contrasena'] # La contraseña del usuario
     negocio_id = datos['negocio_id']
+
+
+@app.route('/usuario/<int:usuario_id>', methods=['GET'])
+def obtener_usuario(usuario_id):
+    """Obtiene los datos de un usuario por su ID."""
+    usuario = Usuario.get_usuario_por_id(usuario_id)
+    if usuario:
+        return jsonify(usuario), 200
+    else:
+        return jsonify({"error": "Usuario no encontrado"}), 404

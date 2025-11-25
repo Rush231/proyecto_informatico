@@ -5,14 +5,14 @@ from api.db.db_config import get_db_connection
 from api.db.db_config import mysql
 
 
-@app.route('/negocios', methods=['POST'])
+@app.route('/crear_negocio', methods=['POST'])
 def crear_negocio():
     datos = request.json
     sql = "INSERT INTO Negocio (nombre, tipo) VALUES (%s, %s)"
     
-    conn = None
+    conn = get_db_connection()
+
     try:
-        conn = get_db_connection()
         if conn is None:
             return jsonify({"error": "Error de conexión"}), 500
         
@@ -62,3 +62,6 @@ def crear_disponibilidad():
         if conn:
             cursor.close()
             conn.close()
+
+
+
