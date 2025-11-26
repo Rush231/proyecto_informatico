@@ -1,15 +1,13 @@
 from api.db.db_config import get_db_connection
 
 class Usuario:
-
     schema = {
         "name": str,
         "email": str,
         "password": str,
         "negocio_id": int,
         "id": int}
-    
-
+         
     def __init__(self, id, nombre, email):
         self.id = id
         self.nombre = nombre
@@ -75,13 +73,13 @@ class Usuario:
 
         #control de id
 
-        cursor.execute("SELECT id FROM Usuario WHERE id = %s", (id,))
+        cursor.execute("SELECT id FROM usuario WHERE id = %s", (id,))
 
         #control email
 
 
         email = datos['email']
-        cursor.execute("SELECT id FROM Usuario WHERE email = %s AND id != %s", (email,)) 
+        cursor.execute("SELECT id FROM usuario WHERE email = %s AND id != %s", (email,)) 
         fila= cursor.fetchone()
         if fila:
             raise ValueError("El email ya está en uso por otro usuario")
@@ -90,25 +88,25 @@ class Usuario:
         #control dni
 
         dni = datos['dni']
-        cursor.execute("SELECT id FROM Usuario WHERE dni = %s AND id != %s", (dni,))
+        cursor.execute("SELECT id FROM usuario WHERE dni = %s AND id != %s", (dni,))
         fila= cursor.fetchone()
         if fila:
             raise ValueError("El DNI ya está en uso por otro usuario")
         
 
     def registrar(self, cursor):
-        sql = "INSERT INTO Usuario (nombre, email, contrasena) VALUES (%s, %s, %s)"
+        sql = "INSERT INTO usuario (name, email, password) VALUES (%s, %s, %s)"
         cursor.execute(sql, (self.nombre, self.email, self.password))
         self.id = cursor.lastrowid
         return self.id
 
     @staticmethod
     def login(cursor, email, password_ingresada):
-        sql = "SELECT * FROM Usuario WHERE email = %s"
+        sql = "SELECT * FROM usuario WHERE email = %s"
         cursor.execute(sql, (email,))
         user_data = cursor.fetchone()
 
-        if user_data and user_data['contrasena'] == password_ingresada:
+        if user_data and user_data['password'] == password_ingresada:
             return Usuario(
                 id=user_data['id'],
                 nombre=user_data['nombre'],

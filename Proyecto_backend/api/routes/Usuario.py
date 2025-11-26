@@ -1,8 +1,7 @@
 from api import app
 from flask import jsonify, request
 from api.db.db_config import get_db_connection
-from models.Usuario import Usuario
-
+from api.models.Usuario import Usuario
 @app.route('/crear_usuario', methods=['POST'])
 def crear_usuario():
     datos = request.json
@@ -29,3 +28,11 @@ def obtener_usuario(id):
         return jsonify({"error": str(e)}), 500
     finally:
         if conn: conn.close()
+
+@app.route('/usuarios', methods=['GET'])
+def get_todos_usuarios():
+    try:
+         lista = Usuario.get_todos_los_usuarios()
+         return jsonify(lista), 200
+    except Exception as e:
+         return jsonify({"error": str(e)}), 400
