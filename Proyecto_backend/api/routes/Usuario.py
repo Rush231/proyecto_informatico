@@ -7,8 +7,14 @@ import mysql.connector
 @app.route('/crear_usuario', methods=['POST'])
 def crear_usuario():
     datos = request.json
+    
+    
+    # SQL corregido para coincidir con tus columnas de DB (name, password)
+    sql = "INSERT INTO Usuario (name, email, password, negocio_id) VALUES (%s, %s, %s, %s)"
+    
+    # ... resto del código con execute(sql, (name, email, password, negocio_id)) ...
     # Validación básica
-    if not all(k in datos for k in ("nombre", "email", "password", "negocio_id")):
+    if not all(k in datos for k in ("name", "email", "password", "negocio_id")):
         return jsonify({"error": "Faltan datos"}), 400
 
     sql = "INSERT INTO Usuario (name, email, password, negocio_id) VALUES (%s, %s, %s, %s)"
@@ -17,7 +23,7 @@ def crear_usuario():
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute(sql, (datos['nombre'], datos['email'], datos['password'], datos['negocio_id']))
+        cursor.execute(sql, (datos['name'], datos['email'], datos['password'], datos['negocio_id']))
         conn.commit()
         return jsonify({"mensaje": "Usuario creado", "id": cursor.lastrowid}), 201
     except mysql.connector.Error as err:

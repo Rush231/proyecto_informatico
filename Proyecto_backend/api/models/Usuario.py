@@ -4,20 +4,18 @@ class Usuario:
     schema = {
         "name": str,
         "email": str,
-        "password": str,
-        "negocio_id": int,
-        "id": int}
+        "password": str,}
          
-    def __init__(self, id, nombre, email):
+    def __init__(self, nombre, email, password, id = None):
         self.id = id
         self.nombre = nombre
         self.email = email
+        self.password = password
         pass
 
 
     @classmethod
     def validar(cls, datos):
-        """Tu lógica de validación adaptada."""
         if datos is None or not isinstance(datos, dict):
             return False, "Datos inválidos o vacíos"
         
@@ -171,3 +169,5 @@ class Usuario:
             "email": self.email
             # No devolvemos la contraseña aquí por un mínimo de decencia visual
         }
+    
+

@@ -23,7 +23,7 @@ def get_todos_clientes_por_id(id):
          return jsonify({"error": str(e)}), 400
     
 
-app.route('/cliente', methods=['POST'])
+@app.route('/cliente', methods=['POST'])
 def crear_cliente():
     datos = request.json
     sql = "INSERT INTO Cliente (nombre, email) VALUES (%s, %s)"

@@ -5,8 +5,8 @@ from api.db.db_config import get_db_connection
 from api.db.db_config import mysql
 from api.models.registro_servicios import RegistroService
 
-@app.route('/negocios/crear-negocio', methods=['POST'])
-def crear_negocio_completo():
+@app.route('/negocio/crear-negocio', methods=['POST'])
+def crear_negocio():
     data = request.json
     conn = get_db_connection()
     
@@ -15,7 +15,7 @@ def crear_negocio_completo():
     try:
         cursor = conn.cursor()
         # Delegamos toda la lógica compleja al modelo/servicio
-        resultado = RegistroService.registrar_negocio_completo(cursor, data)
+        resultado = RegistroService.crear_negocio_completo(cursor, data)
         
         conn.commit() # Confirmamos la transacción aquí
         
@@ -31,7 +31,7 @@ def crear_negocio_completo():
         if conn: conn.close()
 
 
-        
+
 @app.route('/negocios', methods=['GET'])
 def get_todos_negocios():
     try:
