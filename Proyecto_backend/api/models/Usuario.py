@@ -1,5 +1,5 @@
 from api.db.db_config import get_db_connection
-
+import mysql.connector
 class Usuario:
     schema = {
         "name": str,
@@ -29,13 +29,37 @@ class Usuario:
     def get_todos_los_usuarios(cls):
         connection = get_db_connection()
         cursor = connection.cursor()
-        cursor.execute("SELECT id, nombre, email FROM Usuario")
+        cursor.execute("SELECT id, name, email FROM usuario")
         filas = cursor.fetchall()
         cursor.close()
         connection.close()
         usuarios = [Usuario(fila).to_json() for fila in filas]
         return usuarios
-    
+    @classmethod
+    def get_todos_los_usuarios(cls):
+        """Obtiene todos los usuarios de la base de datos."""
+        query = "SELECT id, name AS nombre, email, negocio_id FROM Usuario"
+        
+        conn = None
+        try:
+            conn = get_db_connection()
+            if conn is None:
+                return []
+                
+            cursor = conn.cursor(dictionary=True)
+            cursor.execute(query)
+            resultados = cursor.fetchall() 
+            return resultados
+            
+        except mysql.connector.Error as err:
+            print(f"Error en get_todos_los_usuarios: {err}")
+            return []
+        finally:
+            if conn:
+                if 'cursor' in locals() and cursor:
+                    cursor.close()
+                conn.close()
+
 
     @classmethod 
     def validar(cls, datos):
