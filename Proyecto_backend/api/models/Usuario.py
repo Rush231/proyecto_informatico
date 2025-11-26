@@ -8,22 +8,24 @@ class Usuario:
         "password": str,
         "negocio_id": int,
         "id": int}
+    
+
     def __init__(self, id, nombre, email):
         self.id = id
         self.nombre = nombre
         self.email = email
         pass
     @classmethod
-    def get_usuario_por_id(cls, id):
-        connection = get_db_connection()
-        cursor = connection.cursor()
-        cursor.execute("SELECT id, nombre, email FROM Usuario WHERE id = %s", (id,))
-        datos = cursor.fetchone()
-        cursor.close()
-        connection.close()
-        if datos is not None:
-            return Usuario(datos).to_json()
+    def obtener_por_id(cursor, id):
+        sql = "SELECT id, nombre, email FROM Usuario WHERE id = %s"
+        cursor.execute(sql, (id,))
+        user_data = cursor.fetchone() # Asegúrate que el cursor sea dictionary=True
         
+        if user_data:
+            # Retornamos el diccionario directo o un objeto, como prefieras.
+            # Para simplificar, devolvemos el diccionario:
+            return user_data
+        return None
 
     @classmethod
     def get_todos_los_usuarios(cls):

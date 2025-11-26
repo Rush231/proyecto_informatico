@@ -19,7 +19,7 @@ def crear_turno():
             return jsonify({"error": "Error de conexión"}), 500
 
         # ---
-        # NOTA IMPORTANTE: Aquí faltaría la validación de disponibilidad.
+        # NOTA IMPORTANTE: Aca faltaría la validación de disponibilidad.
         # verificar que:
         # 1. La 'fecha_hora' esté dentro de la 'Disponibilidad' del profesional.
         # 2. No se superponga con otro 'Turno' existente para ese profesional.
