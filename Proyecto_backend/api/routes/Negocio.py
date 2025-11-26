@@ -3,31 +3,35 @@ from flask import jsonify, request
 from api.models.Negocio import Negocio
 from api.db.db_config import get_db_connection
 from api.db.db_config import mysql
+from api.models.registro_servicios import RegistroService
 
-
-@app.route('/negocios', methods=['POST'])
-def crear_negocio():
-    datos = request.json
-    sql = "INSERT INTO Negocio (nombre, tipo) VALUES (%s, %s)"
+@app.route('/negocios/crear-negocio', methods=['POST'])
+def crear_negocio_completo():
+    data = request.json
+    conn = get_db_connection()
     
-    conn = None
+    if not conn: return jsonify({"error": "Error DB"}), 500
+
     try:
-        conn = get_db_connection()
-        if conn is None:
-            return jsonify({"error": "Error de conexión"}), 500
-        
         cursor = conn.cursor()
-        cursor.execute(sql, (datos['nombre'], datos['tipo']))
-        conn.commit()
-        return jsonify({"mensaje": "Negocio creado", "id": cursor.lastrowid}), 201
-    except mysql.connector.Error as err:
-        return jsonify({"error": str(err)}), 500
+        # Delegamos toda la lógica compleja al modelo/servicio
+        resultado = RegistroService.registrar_negocio_completo(cursor, data)
+        
+        conn.commit() # Confirmamos la transacción aquí
+        
+        return jsonify({
+            "mensaje": "Negocio creado exitosamente",
+            "datos": resultado
+        }), 201
+
+    except Exception as e:
+        conn.rollback() # Si el servicio falla, deshacemos todo
+        return jsonify({"error": str(e)}), 500
     finally:
-        if conn:
-            cursor.close()
-            conn.close()
+        if conn: conn.close()
 
 
+        
 @app.route('/negocios', methods=['GET'])
 def get_todos_negocios():
     try:
@@ -38,27 +42,3 @@ def get_todos_negocios():
     
 
 
-@app.route('/disponibilidad', methods=['POST'])
-def crear_disponibilidad():
-    """Crea el horario de un profesional."""
-    datos = request.json
-    # dia_semana: 0=Lunes, 1=Martes...
-    # hora_inicio/fin: "09:00:00", "17:00:00"
-    sql = "INSERT INTO Disponibilidad (profesional_id, dia_semana, hora_inicio, hora_fin) VALUES (%s, %s, %s, %s)"
-    
-    conn = None
-    try:
-        conn = get_db_connection()
-        if conn is None:
-            return jsonify({"error": "Error de conexión"}), 500
-            
-        cursor = conn.cursor()
-        cursor.execute(sql, (datos['profesional_id'], datos['dia_semana'], datos['hora_inicio'], datos['hora_fin']))
-        conn.commit()
-        return jsonify({"mensaje": "Disponibilidad creada", "id": cursor.lastrowid}), 201
-    except mysql.connector.Error as err:
-        return jsonify({"error": str(err)}), 500
-    finally:
-        if conn:
-            cursor.close()
-            conn.close()
