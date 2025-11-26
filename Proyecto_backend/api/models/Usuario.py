@@ -13,31 +13,51 @@ class Usuario:
         self.nombre = nombre
         self.email = email
         pass
+
+
     @classmethod
-    def obtener_por_id(cursor, id):
-        sql = "SELECT id, nombre, email FROM Usuario WHERE id = %s"
-        cursor.execute(sql, (id,))
-        user_data = cursor.fetchone() # Asegúrate que el cursor sea dictionary=True
+    def validar(cls, datos):
+        """Tu lógica de validación adaptada."""
+        if datos is None or not isinstance(datos, dict):
+            return False, "Datos inválidos o vacíos"
         
-        if user_data:
+        for key, expected_type in cls.schema.items():
+            if key not in datos:
+                return False, f"Falta el campo obligatorio: {key}"
+            # Validamos tipo (y que no esté vacío si es string)
+            if not isinstance(datos[key], expected_type):
+                return False, f"Tipo inválido para el campo: {key}"
+            if expected_type == str and not datos[key].strip():
+                return False, f"El campo {key} no puede estar vacío"
+                
+        return True, "Datos válidos"
+    @classmethod
+    def usuario_por_id(cursor, id):
+        sql = "SELECT id, name, email FROM Usuario WHERE id = %s"
+        conn = None
+        try:
+            conn = get_db_connection()
+            if conn is None:
+                return []
+            
+            cursor = conn.cursor(dictionary=True)
+            cursor.execute(sql, (id,))
+            user_data = cursor.fetchone() # Asegúrate que el cursor sea dictionary=True
+        
+            if user_data:
             # Retornamos el diccionario directo o un objeto, como prefieras.
             # Para simplificar, devolvemos el diccionario:
-            return user_data
-        return None
+                return user_data
+            
+        finally:
+            if conn:
+                if 'cursor' in locals() and cursor:
+                    cursor.close()
+                conn.close()
+
 
     @classmethod
     def get_todos_los_usuarios(cls):
-        connection = get_db_connection()
-        cursor = connection.cursor()
-        cursor.execute("SELECT id, name, email FROM usuario")
-        filas = cursor.fetchall()
-        cursor.close()
-        connection.close()
-        usuarios = [Usuario(fila).to_json() for fila in filas]
-        return usuarios
-    @classmethod
-    def get_todos_los_usuarios(cls):
-        """Obtiene todos los usuarios de la base de datos."""
         query = "SELECT id, name AS nombre, email, negocio_id FROM Usuario"
         
         conn = None
@@ -59,17 +79,20 @@ class Usuario:
                 if 'cursor' in locals() and cursor:
                     cursor.close()
                 conn.close()
+                
+        return True, "Datos válidos"
 
 
-    @classmethod 
-    def validar(cls, datos):
-        if datos is None or type (datos) != dict:
-            return False, "Datos inválidos"
-        for key in cls.schema:
-            if key not in datos:
-                return False, f"Falta el campo: {key}"
-            if type(datos[key]) != cls.schema[key]:
-                return False, f"Tipo inválido para el campo: {key}"
+
+    @staticmethod
+    def login(cursor, email, password_ingresada):
+        sql = "SELECT * FROM Usuario WHERE email = %s"
+        cursor.execute(sql, (email,))
+        data = cursor.fetchone()
+        
+        if data and data['contrasena'] == password_ingresada:
+            return Usuario(data['nombre'], data['email'], data['contrasena'], data['id'])
+        return None
         
 
     def __init__(self, fila):
@@ -123,6 +146,8 @@ class Usuario:
         cursor.execute(sql, (self.nombre, self.email, self.password))
         self.id = cursor.lastrowid
         return self.id
+    
+
 
     @staticmethod
     def login(cursor, email, password_ingresada):

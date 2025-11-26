@@ -3,31 +3,35 @@ from flask import jsonify, request
 from api.models.Negocio import Negocio
 from api.db.db_config import get_db_connection
 from api.db.db_config import mysql
+from api.models.registro_servicios import RegistroService
 
-
-@app.route('/crear_negocio', methods=['POST'])
-def crear_negocio():
-    datos = request.json
-    sql = "INSERT INTO Negocio (nombre, tipo) VALUES (%s, %s)"
-    
+@app.route('/negocios/crear-negocio', methods=['POST'])
+def crear_negocio_completo():
+    data = request.json
     conn = get_db_connection()
+    
+    if not conn: return jsonify({"error": "Error DB"}), 500
 
     try:
-        if conn is None:
-            return jsonify({"error": "Error de conexión"}), 500
-        
         cursor = conn.cursor()
-        cursor.execute(sql, (datos['nombre'], datos['tipo']))
-        conn.commit()
-        return jsonify({"mensaje": "Negocio creado", "id": cursor.lastrowid}), 201
-    except mysql.connector.Error as err:
-        return jsonify({"error": str(err)}), 500
+        # Delegamos toda la lógica compleja al modelo/servicio
+        resultado = RegistroService.registrar_negocio_completo(cursor, data)
+        
+        conn.commit() # Confirmamos la transacción aquí
+        
+        return jsonify({
+            "mensaje": "Negocio creado exitosamente",
+            "datos": resultado
+        }), 201
+
+    except Exception as e:
+        conn.rollback() # Si el servicio falla, deshacemos todo
+        return jsonify({"error": str(e)}), 500
     finally:
-        if conn:
-            cursor.close()
-            conn.close()
+        if conn: conn.close()
 
 
+        
 @app.route('/negocios', methods=['GET'])
 def get_todos_negocios():
     try:
