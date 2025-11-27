@@ -1,5 +1,9 @@
 from api.db.db_config import get_db_connection
 import mysql.connector
+from werkzeug.security import generate_password_hash, check_password_hash
+from api import app
+
+ app.config['Secret_KEY'] = "clave_api"
 class Usuario:
     schema = {
         "name": str,
@@ -139,7 +143,22 @@ class Usuario:
             raise ValueError("El DNI ya está en uso por otro usuario")
         
 
-    def registrar(self, cursor):
+    def registrar(cls, datos):
+        if not cls.validar(datos):
+            raise ValueError("Datos inválidos")
+        username = datos['name']
+        password = datos['password']
+
+        connection = get_db_connection()
+        cursor = connection.cursor()
+        cursor.execute("SELECT id FROM usuario WHERE name = %s", (username,))
+        fila = cursor.fetchone()
+        if fila is not None:
+            raise ValueError("El nombre de usuario ya existe")
+        
+        cursor.execute("SELECT INTO usuario (name, password) VALUES (%s, %s)", (username, password))
+    
+
         sql = "INSERT INTO usuario (name, email, password) VALUES (%s, %s, %s)"
         cursor.execute(sql, (self.nombre, self.email, self.password))
         self.id = cursor.lastrowid

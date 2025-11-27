@@ -4,6 +4,7 @@ from api.models.Negocio import Negocio
 from api.db.db_config import get_db_connection
 from api.db.db_config import mysql
 from api.models.registro_servicios import RegistroService
+from api.models.Profesional import Profesional
 
 @app.route('/negocio/crear-negocio', methods=['POST'])
 def crear_negocio():
@@ -41,4 +42,39 @@ def get_todos_negocios():
          return jsonify({"error": str(e)}), 400
     
 
+@app.route('/negocios/crear-con-dueno', methods=['POST'])
+def crear_negocio_usuario_existente():
+    """
+    Crea un negocio y lo vincula a un usuario que YA existe.
+    """
+    datos = request.json
+    # Esperamos: { "usuario_id": 25, "nombre_negocio": "Barberia", "tipo": "Estética" }
+    
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
 
+        # 1. Crear el Negocio
+        nuevo_negocio = Negocio(datos['nombre_negocio'], datos['tipo'])
+        negocio_id = nuevo_negocio.guardar(cursor)
+
+        # 2. Vincular al usuario existente como DUEÑO
+        # Usamos la clase Personal (o Profesional) para crear el vínculo
+        nuevo_personal = Profesional(
+            usuario_id=datos['usuario_id'], 
+            negocio_id=negocio_id, 
+            rol='dueno'
+        )
+        nuevo_personal.asignar_rol(cursor)
+
+        conn.commit()
+        return jsonify({
+            "mensaje": "Negocio creado y vinculado", 
+            "negocio_id": negocio_id
+        }), 201
+
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"error": str(e)}), 500
+    finally:
+        if conn: conn.close()
