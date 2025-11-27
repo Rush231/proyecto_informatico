@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="es-AR"></html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>inicio de sesion</title>
+    <link rel="stylesheet" href="styles.css">
+
+
+</head>
+
+<body>
+    <main class="container">
+        <h2>Iniciar Sesión</h2>
+        <form id="loginForm">
+            <label for="username">Usuario:</label>
+            <input type="text" id="username" name="username" required>
+
+            <label for="password">Contraseña:</label>
+            <input type="password" id="password" name="password" required>
+
+            <button type="submit" id ="login-btn" onclick= "userlogin()"> "Ingresar"
+            <span class="loading-spinner" id="loading-spinner"> </span> 
+            
+        </button>
+        </form>
+        <p id = "message"></p>
+
+    </main>
+
+    <script src="login.js"></script>

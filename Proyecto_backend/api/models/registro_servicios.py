@@ -12,7 +12,7 @@ class RegistroService:
         
         # --- 1. VALIDACIÓN ---
         # Usamos el método validar que agregaste a tu modelo Usuario
-        es_valido, mensaje = Usuario.validar(datos)
+        es_valido, mensaje = Profesional.validar(datos)
         if not es_valido:
             raise ValueError(f"Error en datos de usuario: {mensaje}")
             

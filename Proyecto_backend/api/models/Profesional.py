@@ -1,43 +1,109 @@
+from api.db.db_config import get_db_connection
+import mysql.connector
+
 class Profesional:
-    schema = {"negocio_id": int,
-              "rol":str}
-    def __init__(self, nombre, email, password, negocio_id, rol, especialidad=None, id=None):
+    def __init__(self, id, name, especialidad, negocio_id, email=None):
         self.id = id
-        self.nombre = nombre
-        self.email = email
-        self.password = password # Aquí llega la contraseña plana
-        self.negocio_id = negocio_id
-        self.rol = rol
+        self.name = name
         self.especialidad = especialidad
+        self.negocio_id = negocio_id
+        self.email = email
 
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "especialidad": self.especialidad,
+            "negocio_id": self.negocio_id,
+            "email": self.email
+        }
 
-        def guardar(self, cursor):
-            cursor.execute( (self.nombre, self.email, self.negocio_id, self.rol, self.especialidad))
-            self.id = cursor.lastrowid
-            return self.id
-    
-    @staticmethod
-    def autenticar(cursor, email, password_ingresada):
-        """Método estático para verificar login sin instanciar primero."""
-        sql = "SELECT * FROM Profesional WHERE email = %s"
-        cursor.execute(sql, (email,))
-        data = cursor.fetchone() # Asegúrate que el cursor sea dictionary=True
-    @classmethod   
+    @classmethod
     def validar(cls, datos):
-        if datos is None or type (datos) != dict:
+        # Validamos que vengan los datos mínimos
+        if not datos or not isinstance(datos, dict):
             return False, "Datos inválidos"
-        for key in cls.schema:
-            if key not in datos:
-                return False, f"Falta el campo: {key}"
-            if type(datos[key]) != cls.schema[key]:
-                return False, f"Tipo inválido para el campo: {key}"
-        return None
-    
+        if 'name' not in datos or not datos['name'].strip():
+            return False, "El nombre es obligatorio"
+        if 'negocio_id' not in datos:
+            return False, "El ID del negocio es obligatorio"
+        return True, "OK"
 
-    def asignar_rol(self, cursor):
-        sql = "INSERT INTO Personal (usuario_id, negocio_id, rol, especialidad) VALUES (%s, %s, %s, %s)"
-        cursor.execute(sql, (self.usuario_id, self.negocio_id, self.rol, self.especialidad))
-        self.id = cursor.lastrowid
-        return self.id
-    
-    
+    @classmethod
+    def crear(cls, datos):
+        valido, msg = cls.validar(datos)
+        if not valido: return False, msg
+
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            # Asumimos que la tabla tiene columnas: name, especialidad, negocio_id
+            sql = "INSERT INTO Profesional (name, especialidad, negocio_id) VALUES (%s, %s, %s)"
+            cursor.execute(sql, (datos['name'], datos.get('especialidad'), datos['negocio_id']))
+            conn.commit()
+            return True, {"id": cursor.lastrowid, "mensaje": "Profesional creado"}
+        except mysql.connector.Error as err:
+            return False, f"Error BD: {err}"
+        finally:
+            if 'conn' in locals() and conn: conn.close()
+
+    @classmethod
+    def obtener_por_negocio(cls, negocio_id):
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor(dictionary=True)
+            sql = "SELECT * FROM Profesional WHERE negocio_id = %s"
+            cursor.execute(sql, (negocio_id,))
+            rows = cursor.fetchall()
+            return [cls(r['id'], r['name'], r['especialidad'], r['negocio_id']).to_dict() for r in rows]
+        except mysql.connector.Error:
+            return []
+        finally:
+            if 'conn' in locals() and conn: conn.close()
+
+    @classmethod
+    def eliminar(cls, id):
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute("DELETE FROM Profesional WHERE id = %s", (id,))
+            conn.commit()
+            return True, "Profesional eliminado"
+        except mysql.connector.Error as err:
+            return False, f"Error BD: {err}"
+        finally:
+            if 'conn' in locals() and conn: conn.close()
+
+
+
+    @classmethod
+    def get_todos_los_profesionales(cls):
+        query = "SELECT id, name AS nombre, negocio_id FROM profesional"
+        conn = None
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor(dictionary=True)
+            cursor.execute(query)
+            resultados = cursor.fetchall()
+            return resultados
+        except mysql.connector.Error as err:
+            print(f"Error en get_todos_los_profesionales: {err}")
+            return []
+        finally:
+            if conn:
+                conn.close()
+
+    classmethod
+    def obtener_por_negocio(cls, negocio_id):
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor(dictionary=True)
+            # Trae clientes de ESTE negocio
+            sql = "SELECT * FROM Cliente WHERE negocio_id = %s"
+            cursor.execute(sql, (negocio_id,))
+            rows = cursor.fetchall()
+            return [cls(r['id'], r['name'], r['email'], r['negocio_id']).to_dict() for r in rows]
+        except mysql.connector.Error:
+            return []
+        finally:
+            if 'conn' in locals() and conn: conn.close()

@@ -39,3 +39,16 @@ def get_usuario(id):
              return jsonify({"error": "Usuario no encontrado"}), 404
     except Exception as e:
          return jsonify({"error": str(e)}), 400
+    
+
+@app.route('/usuario/borrar/<int:id>', methods=['DELETE'])
+def eliminar_usuario(id):
+    # Llamamos al método del modelo
+    exito, mensaje = Usuario.eliminar(id)
+    
+    if exito:
+        return jsonify({"mensaje": mensaje}), 200
+    else:
+        # Manejo de errores: 404 si no existe, 500 si es error de BD
+        codigo_status = 404 if "no encontrado" in mensaje else 500
+        return jsonify({"error": mensaje}), codigo_status
