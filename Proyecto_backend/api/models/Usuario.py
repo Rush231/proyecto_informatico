@@ -3,20 +3,23 @@ import mysql.connector
 from werkzeug.security import generate_password_hash, check_password_hash
 from api import app
 
- app.config['Secret_KEY'] = "clave_api"
+app.config['Secret_KEY'] = "clave_api"
+
+
 class Usuario:
+    # Esquema para validación
     schema = {
         "name": str,
         "email": str,
         "password": str,}
-         
-    def __init__(self, nombre, email, password, id = None):
+
+    # Un único constructor que maneja los datos
+    def __init__(self, id, name, email, password=None, negocio_id=None):
         self.id = id
-        self.nombre = nombre
+        self.name = name
         self.email = email
         self.password = password
-        pass
-
+        self.negocio_id = negocio_id
 
     @classmethod
     def validar(cls, datos):
@@ -26,90 +29,77 @@ class Usuario:
         for key, expected_type in cls.schema.items():
             if key not in datos:
                 return False, f"Falta el campo obligatorio: {key}"
-            # Validamos tipo (y que no esté vacío si es string)
             if not isinstance(datos[key], expected_type):
                 return False, f"Tipo inválido para el campo: {key}"
             if expected_type == str and not datos[key].strip():
                 return False, f"El campo {key} no puede estar vacío"
                 
         return True, "Datos válidos"
+
     @classmethod
-    def usuario_por_id(cursor, id):
-        sql = "SELECT id, name, email FROM Usuario WHERE id = %s"
+    def usuario_por_id(cls, id):
+        sql = "SELECT id, name, email, password, negocio_id FROM Usuario WHERE id = %s"
         conn = None
         try:
             conn = get_db_connection()
-            if conn is None:
-                return []
-            
             cursor = conn.cursor(dictionary=True)
             cursor.execute(sql, (id,))
-            user_data = cursor.fetchone() # Asegúrate que el cursor sea dictionary=True
+            user_data = cursor.fetchone()
         
             if user_data:
-            # Retornamos el diccionario directo o un objeto, como prefieras.
-            # Para simplificar, devolvemos el diccionario:
                 return user_data
-            
+            return None 
+        except mysql.connector.Error as err:
+            print(f"Error: {err}")
+            return None
         finally:
             if conn:
-                if 'cursor' in locals() and cursor:
-                    cursor.close()
                 conn.close()
-
 
     @classmethod
     def get_todos_los_usuarios(cls):
+        # Corregido: 'name' en DB se mapea a 'nombre' para consistencia
         query = "SELECT id, name AS nombre, email, negocio_id FROM Usuario"
-        
         conn = None
         try:
             conn = get_db_connection()
-            if conn is None:
-                return []
-                
             cursor = conn.cursor(dictionary=True)
             cursor.execute(query)
-            resultados = cursor.fetchall() 
+            resultados = cursor.fetchall()
             return resultados
-            
         except mysql.connector.Error as err:
             print(f"Error en get_todos_los_usuarios: {err}")
             return []
         finally:
             if conn:
-                if 'cursor' in locals() and cursor:
-                    cursor.close()
                 conn.close()
-                
-        return True, "Datos válidos"
 
 
 
-    @staticmethod
-    def login(cursor, email, password_ingresada):
-        sql = "SELECT * FROM Usuario WHERE email = %s"
-        cursor.execute(sql, (email,))
-        data = cursor.fetchone()
-        
-        if data and data['contrasena'] == password_ingresada:
-            return Usuario(data['nombre'], data['email'], data['contrasena'], data['id'])
-        return None
-        
-
-    def __init__(self, fila):
-        self.__id = fila['0']
-        self.__nombre = fila['1']
-        self.__email = fila['2']
-        self.__password = fila['3'] 
 
     @classmethod 
     def post_usuario(cls, datos):
-        if not cls.validar(datos):
-            return jsonify({"error": "Datos inválidos"}), 400
+        # 1. Validar datos
+        valido, mensaje = cls.validar(datos)
+        if not valido:
+            return None, mensaje # Devolvemos error al controlador
         
-        pass
-
+        # 2. Insertar en BD
+        sql = "INSERT INTO Usuario (name, email, password, negocio_id) VALUES (%s, %s, %s, %s)"
+        conn = None
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute(sql, (datos['nombre'], datos['email'], datos['password'], datos.get('negocio_id')))
+            conn.commit()
+            
+            # Retornamos el ID del nuevo usuario
+            return cursor.lastrowid, "Usuario creado exitosamente"
+        except mysql.connector.Error as err:
+            return None, f"Error de BD: {err}"
+        finally:
+            if conn:
+                conn.close()
 
     @classmethod
     def put_usuario(cls, id, datos):
@@ -133,16 +123,7 @@ class Usuario:
         if fila:
             raise ValueError("El email ya está en uso por otro usuario")
         
-
-        #control dni
-
-        dni = datos['dni']
-        cursor.execute("SELECT id FROM usuario WHERE dni = %s AND id != %s", (dni,))
-        fila= cursor.fetchone()
-        if fila:
-            raise ValueError("El DNI ya está en uso por otro usuario")
-        
-
+    @classmethod
     def registrar(cls, datos):
         if not cls.validar(datos):
             raise ValueError("Datos inválidos")
@@ -156,37 +137,50 @@ class Usuario:
         if fila is not None:
             raise ValueError("El nombre de usuario ya existe")
         
+        hashed_password = generate_password_hash(password, method= 'pbkdf2:sha256')
+        negocio_id = datos.get('negocio_id')
+        
         cursor.execute("SELECT INTO usuario (name, password) VALUES (%s, %s)", (username, password))
+        connection.commit()
+
+        cursor.execute("SELECT LAST_INSERT_ID()")
+        
     
 
-        sql = "INSERT INTO usuario (name, email, password) VALUES (%s, %s, %s)"
-        cursor.execute(sql, (self.nombre, self.email, self.password))
-        self.id = cursor.lastrowid
-        return self.id
-    
 
+    @classmethod
+    def login(cls, email, password_ingresada):
+        # Busca por email y compara password
+        sql = "SELECT * FROM Usuario WHERE email = %s"
+        conn = None
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor(dictionary=True)
+            cursor.execute(sql, (email,))
+            user_data = cursor.fetchone()
 
-    @staticmethod
-    def login(cursor, email, password_ingresada):
-        sql = "SELECT * FROM usuario WHERE email = %s"
-        cursor.execute(sql, (email,))
-        user_data = cursor.fetchone()
-
-        if user_data and user_data['password'] == password_ingresada:
-            return Usuario(
-                id=user_data['id'],
-                nombre=user_data['nombre'],
-                email=user_data['email'],
-                password=user_data['contrasena']
-            )
-        return None
+            # Verificamos si existe y si la password coincide
+            if user_data and user_data['password'] == password_ingresada:
+                return Usuario(
+                    id=user_data['id'],
+                    nombre=user_data['name'], # Ojo: en la DB es 'name'
+                    email=user_data['email'],
+                    password=user_data['password'],
+                    negocio_id=user_data.get('negocio_id')
+                )
+            return None
+        except mysql.connector.Error as err:
+            print(f"Error login: {err}")
+            return None
+        finally:
+            if conn:
+                conn.close()
 
     def to_dict(self):
         return {
             "id": self.id,
             "nombre": self.nombre,
-            "email": self.email
-            # No devolvemos la contraseña aquí por un mínimo de decencia visual
+            "email": self.email,
+            "negocio_id": self.negocio_id
         }
-    
 
