@@ -12,6 +12,6 @@ import api.routes.Cliente
 import api.routes.Disponibilidad
 import api.routes.Usuario
 import api.routes.Negocio
-import api.routes.profesional  # Nota: tu archivo se llama profesional.py (minúscula)
+import api.routes.profesional
 import api.routes.Servicio
 import api.routes.Turno

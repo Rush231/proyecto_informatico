@@ -7,25 +7,16 @@ import mysql.connector
 @app.route('/crear_usuario', methods=['POST'])
 def crear_usuario():
     datos = request.json
-    # Validación básica
-    if not all(k in datos for k in ("nombre", "email", "password", "negocio_id")):
-        return jsonify({"error": "Faltan datos"}), 400
 
-    sql = "INSERT INTO Usuario (name, email, password, negocio_id) VALUES (%s, %s, %s, %s)"
-    
-    conn = None
+    es_valido, mensaje = Usuario.validar(datos)
+    if not es_valido:
+        return jsonify({"error": mensaje}), 400
+    conn = get_db_connection()
     try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute(sql, (datos['nombre'], datos['email'], datos['password'], datos['negocio_id']))
-        conn.commit()
-        return jsonify({"mensaje": "Usuario creado", "id": cursor.lastrowid}), 201
-    except mysql.connector.Error as err:
-        return jsonify({"error": str(err)}), 500
-    finally:
-        if conn:
-            cursor.close()
-            conn.close()
+        nuevo = Usuario.registrar(datos)
+        return jsonify(nuevo), 201
+    except Exception as e:
+        return jsonify({"error": e.args[0]}), 500
 
 # --- Ruta para OBTENER Usuarios (Opcional, si la necesitas) ---
 @app.route('/usuarios', methods=['GET'])
