@@ -21,6 +21,12 @@ class Usuario:
         self.password = password
         self.negocio_id = negocio_id
 
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "nombre": self.name,
+            "email": self.email,
+        }
     @classmethod
     def validar(cls, datos):
         if datos is None or not isinstance(datos, dict):
@@ -58,7 +64,6 @@ class Usuario:
 
     @classmethod
     def get_todos_los_usuarios(cls):
-        # Corregido: 'name' en DB se mapea a 'nombre' para consistencia
         query = "SELECT id, name AS nombre, email, negocio_id FROM Usuario"
         conn = None
         try:
@@ -129,6 +134,7 @@ class Usuario:
             raise ValueError("Datos inválidos")
         username = datos['name']
         password = datos['password']
+        email = datos['email']
 
         connection = get_db_connection()
         cursor = connection.cursor()
@@ -140,11 +146,11 @@ class Usuario:
         hashed_password = generate_password_hash(password, method= 'pbkdf2:sha256')
         negocio_id = datos.get('negocio_id')
         
-        cursor.execute("SELECT INTO usuario (name, password) VALUES (%s, %s)", (username, password))
+        cursor.execute("INSERT INTO usuario (name, password, email) VALUES (%s, %s, %s)", (username,password ,email))
         connection.commit()
 
-        cursor.execute("SELECT LAST_INSERT_ID()")
-        
+        cursor.close()
+        connection.close()
     
 
 
@@ -176,11 +182,20 @@ class Usuario:
             if conn:
                 conn.close()
 
-    def to_dict(self):
-        return {
-            "id": self.id,
-            "nombre": self.nombre,
-            "email": self.email,
-            "negocio_id": self.negocio_id
-        }
-
+    @classmethod
+    def eliminar(cls, id):
+        sql = "DELETE FROM Usuario WHERE id = %s"
+        conn = None
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute(sql, (id,))
+            conn.commit()
+            return cursor.rowcount > 0
+        except mysql.connector.Error as err:
+            print(f"Error eliminar_usuario: {err}")
+            return False
+        finally:
+            if conn:
+                conn.close()
+        
