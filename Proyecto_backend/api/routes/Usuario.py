@@ -52,3 +52,16 @@ def eliminar_usuario(id):
         # Manejo de errores: 404 si no existe, 500 si es error de BD
         codigo_status = 404 if "no encontrado" in mensaje else 500
         return jsonify({"error": mensaje}), codigo_status
+    
+
+@app.route('/login', methods=['POST'])
+def login_usuario():
+    auth = request.authorization
+    try:
+        usuario = Usuario.login(auth)
+        if usuario:
+            return jsonify(usuario), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+    return jsonify({"message": "Credenciales inválidas"}), 401
