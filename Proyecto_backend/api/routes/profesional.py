@@ -37,7 +37,7 @@ def get_turnos_profesional(profesional_id):
     turnos = Profesional.obtener_turnos(profesional_id)
     return jsonify(turnos), 200
 
-@app.route('/profesional/<int:id>', methods=['DELETE'])
+@app.route('/profesional/borrar/<int:id>', methods=['DELETE'])
 def borrar_profesional(id):
     exito, res = Profesional.eliminar(id)
     return jsonify({"mensaje": res}), (200 if exito else 500)

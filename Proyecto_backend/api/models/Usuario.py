@@ -42,7 +42,8 @@ class Usuario:
                 return False, f"Tipo inválido para el campo: {key}"
             if expected_type == str and not datos[key].strip():
                 return False, f"El campo {key} no puede estar vacío"
-                
+            if key == 'password' and len(datos[key]) < 8:
+                return False, "La contraseña debe tener al menos 8 caracteres"
         return True, "Datos válidos"
 
     @classmethod
