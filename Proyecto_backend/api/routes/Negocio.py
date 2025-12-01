@@ -34,3 +34,11 @@ def get_todos_negocios():
 def borrar_negocio(id):
     exito, res = Negocio.borrar_negocio(id)
     return jsonify({"mensaje": res}), (200 if exito else 500)
+
+@app.route('/negocio/<int:id>', methods=['GET'])
+def obtener_negocio(id):
+    negocio = Negocio.obtener_por_id(id)
+    if negocio:
+        return jsonify(negocio), 200
+    else:
+        return jsonify({"error": "Negocio no encontrado"}), 404

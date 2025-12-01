@@ -2,8 +2,11 @@ from api.db.db_config import get_db_connection
 import mysql.connector
 from werkzeug.security import generate_password_hash, check_password_hash
 from api import app
+import jwt
+import datetime
 
-app.config['Secret_KEY'] = "clave_api"
+
+app.config['SECRET_KEY'] = "clave_api"
 
 
 class Usuario:
@@ -39,7 +42,8 @@ class Usuario:
                 return False, f"Tipo inválido para el campo: {key}"
             if expected_type == str and not datos[key].strip():
                 return False, f"El campo {key} no puede estar vacío"
-                
+            if key == 'password' and len(datos[key]) < 8:
+                return False, "La contraseña debe tener al menos 8 caracteres"
         return True, "Datos válidos"
 
     @classmethod
@@ -146,7 +150,7 @@ class Usuario:
         hashed_password = generate_password_hash(password, method= 'pbkdf2:sha256')
         negocio_id = datos.get('negocio_id')
         
-        cursor.execute("INSERT INTO usuario (name, password, email) VALUES (%s, %s, %s)", (username,password ,email))
+        cursor.execute("INSERT INTO usuario (name, password, email) VALUES (%s, %s, %s)", (username,hashed_password ,email))
         connection.commit()
 
         cursor.close()
@@ -155,29 +159,49 @@ class Usuario:
 
 
     @classmethod
-    def login(cls, email, password_ingresada):
-        # Busca por email y compara password
-        sql = "SELECT * FROM Usuario WHERE email = %s"
+    def login(cls, auth):
         conn = None
         try:
             conn = get_db_connection()
             cursor = conn.cursor(dictionary=True)
-            cursor.execute(sql, (email,))
+            
+            # 1. Buscamos por nombre de usuario (auth.username)
+            sql = "SELECT id, name, password FROM usuario WHERE name = %s"
+            cursor.execute(sql, (auth.username,))
             user_data = cursor.fetchone()
 
-            # Verificamos si existe y si la password coincide
-            if user_data and user_data['password'] == password_ingresada:
-                return Usuario(
-                    id=user_data['id'],
-                    nombre=user_data['name'], # Ojo: en la DB es 'name'
-                    email=user_data['email'],
-                    password=user_data['password'],
-                    negocio_id=user_data.get('negocio_id')
-                )
-            return None
-        except mysql.connector.Error as err:
-            print(f"Error login: {err}")
-            return None
+            # 2. VALIDACIÓN CLAVE: Verificamos si user_data tiene datos antes de usarlo
+            if not user_data:
+                # Si es None, lanzamos error o retornamos None para manejarlo en la ruta
+                raise ValueError("Usuario no encontrado")
+
+            # 3. Accedemos por CLAVE ['password'], no por índice [2]
+            password_bd = user_data['password']
+            print(f"Contraseña en BD: {password_bd}")
+            # 4. Verificamos el hash
+            if not check_password_hash(password_bd, auth.password):
+                raise ValueError("Contraseña incorrecta")
+            
+            # 5. Generación del Token
+            # Nota: auth suele tener .username, no .name. Usamos el nombre real de la BD.
+            token_payload = {
+                'name': user_data['name'], 
+                'id': user_data['id'],
+                'exp': datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=2)
+            }
+            
+            TOKEN = jwt.encode(token_payload, app.config['SECRET_KEY'], algorithm="HS256")
+            
+            return {
+                'token': TOKEN,
+                'id': user_data['id'],
+                'name': user_data['name'] 
+            }
+
+        except Exception as e:
+            # Es buena práctica imprimir el error para verlo en consola
+            print(f"Error en login: {e}") 
+            return None # O relanzar la excepción según prefieras
         finally:
             if conn:
                 conn.close()
