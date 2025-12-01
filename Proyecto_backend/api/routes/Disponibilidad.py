@@ -26,7 +26,7 @@ def crear_disponibilidad():
             return jsonify({"error": str(e)}), 400
      
 
-@app.route('/actualizar/<int:id>', methods=['PUT'])
+@app.route('/disponibilidad/actualizar/<int:id>', methods=['PUT'])
 def actualizar_disponibilidad(id):
     try:
         datos = request.json
@@ -34,3 +34,14 @@ def actualizar_disponibilidad(id):
         return jsonify(actualizado), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 400    
+    
+
+@app.route('/eliminar-disponibilidad/<int:id>', methods=['DELETE'])
+def borrar_disponibilidad(id):
+    try:
+        exito, mensaje = Disponibilidad.eliminar(id)
+        if exito:
+            return jsonify({"mensaje": mensaje}), 200
+        return jsonify({"error": mensaje}), 400
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400

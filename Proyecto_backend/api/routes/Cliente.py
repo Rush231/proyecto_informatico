@@ -46,7 +46,7 @@ def editar_cliente(id):
     return jsonify({"error": res}), 400
 
 # Eliminar Cliente (DELETE)
-@app.route('/cliente/<int:id>', methods=['DELETE'])
+@app.route('/eliminar-cliente/<int:id>', methods=['DELETE'])
 def eliminar_cliente(id):
     exito, res = Cliente.eliminar(id)
     if exito:

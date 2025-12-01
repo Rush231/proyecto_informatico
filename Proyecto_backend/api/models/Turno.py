@@ -12,11 +12,6 @@ class Turno:
 
     @classmethod
     def buscar_horarios_disponibles(cls, profesional_id, fecha_str, duracion_minutos):
-        """
-        Genera los horarios disponibles para un profesional en una fecha específica.
-        fecha_str: 'YYYY-MM-DD'
-        duracion_minutos: int (duración del servicio)
-        """
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
         
@@ -26,16 +21,82 @@ class Turno:
 
         try:
             # Obtener la regla general de disponibilidad para ese día
-            sql_disp = "SELECT hora_inicio, hora_fin FROM Disponibilidad WHERE profesional_id = %s AND dia_semana = %s"
-            cursor.execute(sql_disp, (profesional_id, dia_semana))
-            regla = cursor.fetchone()
+            sql_dispo = "SELECT hora_inicio, hora_fin FROM Disponibilidad WHERE profesional_id = %s AND dia_semana = %s"
+            cursor.execute(sql_dispo, (profesional_id, dia_semana))
+            reglas = cursor.fetchall()
 
-            if not regla:
+            if not reglas:
                 return [] # El profesional no trabaja ese día
+            
 
-            # Convertir a objetos datetime completos para comparar
-            inicio_jornada = datetime.combine(fecha_obj, (timedelta(seconds=regla['hora_inicio'].total_seconds())).to_pytime()) if isinstance(regla['hora_inicio'], timedelta) else datetime.combine(fecha_obj, datetime.strptime(str(regla['hora_inicio']), "%H:%M:%S").time())
-            fin_jornada = datetime.combine(fecha_obj, (timedelta(seconds=regla['hora_fin'].total_seconds())).to_pytime()) if isinstance(regla['hora_fin'], timedelta) else datetime.combine(fecha_obj, datetime.strptime(str(regla['hora_fin']), "%H:%M:%S").time())
+            sql_turnos = """
+                SELECT t.fecha_hora, s.duracion 
+                FROM Turno t
+                JOIN Servicio s ON t.servicio_id = s.id
+                WHERE t.profesional_id = %s 
+                AND DATE(t.fecha_hora) = %s 
+                AND t.estado != 'cancelado'
+            """
+            cursor.execute(sql_turnos, (profesional_id, fecha_str))
+            ocupados = cursor.fetchall()
+
+            # Bloqueos (Feriados/Ausencias)
+            sql_bloqueos = """
+                SELECT fecha_inicio, fecha_fin FROM BloqueoAgenda 
+                WHERE profesional_id = %s 
+                AND (DATE(fecha_inicio) <= %s AND DATE(fecha_fin) >= %s)
+            """
+            cursor.execute(sql_bloqueos, (profesional_id, fecha_str, fecha_str))
+            bloqueos = cursor.fetchall()
+
+            horarios_disponibles = []
+
+            # Iteramos por CADA rango de disponibilidad (ej: primero mañana, luego tarde)
+            for regla in reglas:
+                def asegurar_time(valor):
+                    if isinstance(valor, timedelta):
+                        return (datetime.min + valor).time()
+                    return valor # Asumimos que ya es time o datetime
+
+                hora_inicio_time = asegurar_time(regla['hora_inicio'])
+                hora_fin_time = asegurar_time(regla['hora_fin'])
+
+             # Combinamos con la fecha para tener datetime completos
+                inicio_jornada = datetime.combine(fecha_obj, hora_inicio_time)
+                fin_jornada = datetime.combine(fecha_obj, hora_fin_time)
+                tiempo_actual = inicio_jornada
+                # Barrido de slots
+                while tiempo_actual + timedelta(minutes=duracion_minutos) <= fin_jornada:
+                    tiempo_fin_turno = tiempo_actual + timedelta(minutes=duracion_minutos)
+                    esta_libre = True
+
+                    # A. Verificar colisión REAL con Turnos existentes (Superposición de rangos)
+                    for turno in ocupados:
+                        inicio_ocupado = turno['fecha_hora']
+                        fin_ocupado = inicio_ocupado + timedelta(minutes=turno['duracion'])
+                        
+                        # Lógica de superposición: (InicioA < FinB) y (FinA > InicioB)
+                        if (tiempo_actual < fin_ocupado) and (tiempo_fin_turno > inicio_ocupado):
+                            esta_libre = False
+                            break
+
+                    # B. Verificar colisión con Bloqueos
+                    if esta_libre:
+                        for bloque in bloqueos:
+                            b_inicio = bloque['fecha_inicio']
+                            b_fin = bloque['fecha_fin']
+                            if (tiempo_actual < b_fin) and (tiempo_fin_turno > b_inicio):
+                                esta_libre = False
+                                break
+                    
+                    if esta_libre:
+                        horarios_disponibles.append(tiempo_actual.strftime('%H:%M'))
+                    
+                    tiempo_actual += timedelta(minutes=duracion_minutos) # O usa intervalo fijo (ej: 15 o 30 min)
+
+            # Ordenar y eliminar duplicados si los hubiera
+            return sorted(list(set(horarios_disponibles)))
+        
 
             #  TURNOS YA OCUPADOS ese día
             sql_turnos = "SELECT fecha_hora FROM Turno WHERE profesional_id = %s AND DATE(fecha_hora) = %s AND estado != 'cancelado'"
@@ -123,7 +184,7 @@ class Turno:
             if hora_solicitada in horarios_disponibles:
                 return True, "Horario disponible"
             else:
-                return False, "El horario seleccionado no está disponible (ocupado, feriado o fuera de rango)."
+                return False, "El horario seleccionado no esta disponible (ocupado, feriado o fuera de rango)."
 
         except Exception as e:
             return False, f"Error interno al validar: {str(e)}"
