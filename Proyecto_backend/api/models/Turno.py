@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta, date
 from api.db.db_config import get_db_connection
+import mysql.connector
 class Turno:
     def __init__(self, cliente_id, profesional_id, servicio_id, fecha_hora, estado='reservado', id=None):
         self.id = id
@@ -128,3 +129,44 @@ class Turno:
             return False, f"Error interno al validar: {str(e)}"
         finally:
             if conn: conn.close()
+    @classmethod
+    def crear(cls, datos):
+        """
+        Orquesta la creación del turno: Valida -> Conecta -> Guarda
+        Retorna: (Exito: bool, Resultado: dict/str)
+        """
+        # 1. Extraer datos
+        cliente_id = datos.get('cliente_id')
+        profesional_id = datos.get('profesional_id')
+        servicio_id = datos.get('servicio_id')
+        fecha_hora = datos.get('fecha_hora')
+
+        # 2. Validar reglas de negocio (Horarios, bloqueos, etc.)
+        es_valido, mensaje = cls.es_horario_valido(profesional_id, servicio_id, fecha_hora)
+        if not es_valido:
+            return False, mensaje # Retornamos el error de validación
+
+        # 3. Guardar en Base de Datos (SQL)
+        conn = None
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            
+            sql = """
+                INSERT INTO Turno (cliente_id, profesional_id, servicio_id, fecha_hora, estado) 
+                VALUES (%s, %s, %s, %s, 'reservado')
+            """
+            cursor.execute(sql, (cliente_id, profesional_id, servicio_id, fecha_hora))
+            conn.commit()
+            
+            nuevo_id = cursor.lastrowid
+            return True, {"id": nuevo_id, "mensaje": "Turno reservado con éxito"}
+
+        except mysql.connector.Error as err:
+            return False, f"Error en la base de datos: {err}"
+        except Exception as e:
+            return False, f"Error inesperado: {str(e)}"
+        finally:
+            if conn:
+                conn.close()
+  
