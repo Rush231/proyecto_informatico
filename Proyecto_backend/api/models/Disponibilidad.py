@@ -69,3 +69,14 @@ class Disponibilidad:
             return [cls(**r).to_dict() for r in rows]
         finally:
             if 'conn' in locals() and conn: conn.close()
+
+    @classmethod
+    def get_hay_disponibilidad(cls):
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor(dictionary=True)
+            cursor.execute("SELECT * FROM Disponibilidad")
+            rows = cursor.fetchall()
+            return [cls(**r).to_dict() for r in rows]
+        finally:
+            if 'conn' in locals() and conn: conn.close()
