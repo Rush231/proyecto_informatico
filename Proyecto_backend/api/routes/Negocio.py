@@ -21,7 +21,7 @@ def crear_negocio():
 
 
 @app.route('/negocios', methods=['GET'])
-def get_todos_negocios():
+def get_negocios():
     try:
          lista = Negocio.get_todos_negocios()
          return jsonify(lista), 200

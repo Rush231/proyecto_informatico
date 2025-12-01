@@ -64,3 +64,17 @@ class Negocio:
             return False, f"Error BD: {err}"
         finally:
             if conn: conn.close()
+
+
+    @classmethod
+    def get_todos_negocios(cls):
+        conn = None
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor(dictionary=True)
+            cursor.execute("SELECT * FROM Negocio")
+            rows = cursor.fetchall()
+            negocios = [cls(row['id'], row['name'], row['tipo']).to_dict() for row in rows]
+            return negocios
+        finally:
+            if conn: conn.close()
