@@ -26,16 +26,23 @@ def get_todos_clientes_por_id(negocio_id):
 @app.route('/crear-cliente', methods=['POST'])
 def crear_cliente():
     datos = request.json
+    # 1. Validar datos básicos
     es_valido, mensaje = Cliente.validar(datos)
     if not es_valido:
         return jsonify({"error": mensaje}), 400
-    conn = get_db_connection()
-    try:
-        nuevo = Cliente.crear(datos)
-        return jsonify(nuevo), 201
-    except Exception as e:
-        return jsonify({"error": e.args[0]}), 500
     
+    # 2. Intentar crear en BD
+    try:
+        exito, resultado = Cliente.crear(datos) # Desempaquetar la tupla (True/False, resultado)
+        
+        if exito:
+            return jsonify(resultado), 201
+        else:
+            # Si falló (ej. error de columna negocio_id), devolvemos error 500
+            return jsonify({"error": resultado}), 500
+            
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/cliente/<int:id>', methods=['PUT'])
 def editar_cliente(id):

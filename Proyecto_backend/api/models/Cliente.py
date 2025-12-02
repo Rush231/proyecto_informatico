@@ -16,7 +16,7 @@ class Cliente:
             "negocio_id": self.negocio_id
         }
     
-    @classmethod
+    @classmethod # <--- ESTO ES CRUCIAL PARA EVITAR EL ERROR DE 'datos'
     def validar(cls, datos):
         if not datos or not isinstance(datos, dict):
             return False, "Datos inválidos"
@@ -28,79 +28,33 @@ class Cliente:
 
     @classmethod
     def crear(cls, datos):
-        if 'name' not in datos or 'email' not in datos:
-            return False, "Nombre y Email son obligatorios"
-            
-        negocio_id = datos.get('negocio_id') # Puede ser None si es un cliente global, pero idealmente debe tenerlo
+        # 1. Validar nombre y email
+        valido, msg = cls.validar(datos)
+        if not valido:
+            return False, msg
 
+        # 2. Obtener negocio_id (puede ser None)
+        negocio_id = datos.get('negocio_id')
+
+        conn = None
         try:
             conn = get_db_connection()
             cursor = conn.cursor()
-            # Verifica si ya existe el email en ESTE negocio (opcional)
             
+            # 3. Insertar (negocio_id puede ser NULL en la BD)
             sql = "INSERT INTO Cliente (name, email, negocio_id) VALUES (%s, %s, %s)"
             cursor.execute(sql, (datos['name'], datos['email'], negocio_id))
             conn.commit()
-            return True, {"id": cursor.lastrowid, "mensaje": "Cliente registrado"}
+            
+            return True, {"id": cursor.lastrowid, "mensaje": "Cliente creado exitosamente"}
         except mysql.connector.Error as err:
-            return False, f"Error BD: {err}"
+            return False, f"Error de Base de Datos: {err}"
         finally:
-            if 'conn' in locals() and conn:
-                conn.close()
+            if conn: conn.close()
 
-
-    @classmethod
-    def obtener_por_negocio(cls, negocio_id):
-        try:
-            conn = get_db_connection()
-            cursor = conn.cursor(dictionary=True)
-            sql = "SELECT * FROM Cliente WHERE negocio_id = %s"
-            cursor.execute(sql, (negocio_id,))
-            rows = cursor.fetchall()
-            return [cls(r['id'], r['name'], r['email'], r['negocio_id']).to_dict() for r in rows]
-        except mysql.connector.Error:
-            return []
-        finally:
-            if 'conn' in locals() and conn: conn.close()
-
+    # ... (Manten tus otros métodos: obtener_por_negocio, obtener_todos, actualizar, eliminar) ...
+    # Asegúrate de que todos tengan @classmethod si usan 'cls'
     @classmethod
     def obtener_todos_los_clientes(cls):
-        try:
-            conn = get_db_connection()
-            cursor = conn.cursor(dictionary=True)
-            sql = "SELECT * FROM Cliente"
-            cursor.execute(sql)
-            rows = cursor.fetchall()
-            return [cls(r['id'], r['name'], r['email'], r['negocio_id']).to_dict() for r in rows]
-        except mysql.connector.Error:
-            return []
-        finally:
-            if 'conn' in locals() and conn: conn.close()
-
-    @classmethod
-    def actualizar(cls, id, datos):
-        try:
-            conn = get_db_connection()
-            cursor = conn.cursor()
-            
-            sql = "UPDATE Cliente SET name=%s, email=%s WHERE id=%s"
-            cursor.execute(sql, (datos['nombre'], datos['email'], id))
-            conn.commit()
-            return True, "Cliente actualizado"
-        except mysql.connector.Error as err:
-            return False, f"Error BD: {err}"
-        finally:
-            if 'conn' in locals() and conn: conn.close()
-
-    @classmethod
-    def eliminar(cls, id):
-        try:
-            conn = get_db_connection()
-            cursor = conn.cursor()
-            cursor.execute("DELETE FROM Cliente WHERE id = %s", (id,))
-            conn.commit()
-            return True, "Cliente eliminado"
-        except mysql.connector.Error as err:
-            return False, f"Error BD: {err}"
-        finally:
-            if 'conn' in locals() and conn: conn.close()
+        # ... tu código existente ...
+        pass # Rellena con tu código previo
