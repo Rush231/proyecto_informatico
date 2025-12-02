@@ -1,3 +1,4 @@
+
 body {
     display: flex;
     flex-direction: column;
@@ -7,9 +8,168 @@ body {
     margin: 0;
     font-family: Arial, sans-serif;
     background: linear-gradient(0deg, #ff0000 0%, #000 2%, #000 3%, #000 16%, #000 27%, #ffffff 100%);
+    overflow: hidden;
 
 }
 
+/* --- RESET BÁSICO --- */
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Arial', sans-serif; }
+
+
+/* Estilo general del body */
+body {
+    background-color: #f4f4f9;
+    color: #333;
+    height: 100vh;
+    overflow: hidden; /* Evita doble scroll */
+}
+
+/* --- ESTILOS ESPECÍFICOS PARA LOGIN/REGISTRO (Centrado) --- */
+/* Solo se aplicarán si envuelves tu login en un div con esta clase o si el body tiene esta clase. 
+   Pero para no romper tu login actual, mantenemos compatibilidad con .form-control */
+
+
+.form {
+    /* Mantenemos tus estilos de tarjeta de login */
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    /* Si el login se ve mal, asegúrate de que el login.html tenga un contenedor centrado */
+}
+
+/* --- LAYOUT DASHBOARD (NUEVO) --- */
+.dashboard-wrapper {
+    display: flex;
+    height: 100vh;
+    width: 100%;
+}
+
+/* Barra Lateral */
+.sidebar {
+    width: 260px;
+    background-color: #1f2937; /* Color oscuro */
+    color: white;
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+}
+
+.sidebar-header {
+    padding: 20px;
+    text-align: center;
+    border-bottom: 1px solid #374151;
+}
+
+.sidebar-menu {
+    display: flex;
+    flex-direction: column;
+    padding: 20px 0;
+    flex-grow: 1;
+}
+
+.menu-item {
+    background: none;
+    border: none;
+    color: #9ca3af;
+    padding: 15px 25px;
+    text-align: left;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+}
+
+.menu-item:hover, .menu-item.active {
+    color: white;
+    background-color: #374151;
+    border-left: 4px solid #3b82f6; /* Línea azul al activo */
+}
+
+.spacer { flex-grow: 1; } /* Empuja el logout al fondo */
+
+.logout { color: #ef4444; }
+.logout:hover { background-color: #fee2e2; color: #b91c1c; }
+
+/* Contenido Principal */
+.main-content {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.top-header {
+    background-color: white;
+    padding: 15px 30px;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.content-container {
+    padding: 30px;          /* Un poco de aire en los bordes */
+    width: 100%;            /* Ocupar todo el ancho disponible */
+    height: 100%;           /* Ocupar toda la altura */
+    overflow-y: auto;       /* Scroll vertical solo si el contenido es muy largo */
+    box-sizing: border-box; /* Asegura que el padding no rompa el ancho */
+}
+
+/* Tarjetas y Formularios (Tus estilos originales adaptados) */
+.card {
+    background: white;
+    padding: 40px 50 px;
+    border-radius: 18px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+    margin: 0 auto
+
+}
+
+.form-group { margin-bottom: 115px; }
+.form-row { display: flex; gap: 15px; }
+.form-row .form-group { flex: 1; }
+
+label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 0.9em; }
+
+select, input[type="text"], input[type="datetime-local"] {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 1rem;
+}
+
+.btn-primary {
+    background-color: #2563eb;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1rem;
+    width: 100%;
+    transition: background 0.2s;
+}
+.btn-primary:hover { background-color: #1d4ed8; }
+
+/* Utilidades */
+.hidden { display: none !important; }
+.msg { margin-top: 10px; padding: 10px; border-radius: 4px; text-align: center; }
+.msg.success { background-color: #d1fae5; color: #065f46; }
+.msg.error { background-color: #fee2e2; color: #991b1b; }
+
+
+
+/* También asegúrate de que el botón activo se note */
+.menu-item.active {
+    background-color: #374151; /* O el color que prefieras */
+    border-left: 4px solid #3b82f6;
+}
 
 .form-control {
     width: 300px;

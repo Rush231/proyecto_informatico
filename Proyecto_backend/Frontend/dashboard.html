@@ -1,96 +1,264 @@
 <!DOCTYPE html>
 <html lang="es-AR">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Dashboard</title>
-        <link rel="stylesheet" href="css/styles.css">
-    </head>
-
-
-    
-        <header class = "top-bar" > 
-            
-            <span>
-            Contacto: soporte@turnos.com | +54 11 1234-5678
-
-            </span>
-        </header>
-
- <!DOCTYPE html>
-<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Mis Turnos</title>
+    <title>Dashboard - Sistema de Turnos</title>
     <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="assets/fontawesome/css/all.min.css">
 </head>
 <body>
-    <nav class="navbar">
-        <div class="logo">Sistema Turnos</div>
-        <div class="user-info">
-            <span id="user-name">Cargando...</span>
-            <button id="btn-logout" class="btn-danger">Cerrar Sesión</button>
-        </div>
-    </nav>
 
-    <div class="container">
-        <section class="card">
-            <h2>Nuevo Turno</h2>
-            <form id="form-turno">
-                <div class="form-group">
-                    <label>1. Selecciona el Negocio</label>
-                    <select id="select-negocio" required>
-                        <option value="">-- Selecciona Negocio --</option>
-                    </select>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>2. Servicio</label>
-                        <select id="select-servicio" disabled required>
-                            <option value="">-- Primero Negocio --</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>3. Profesional</label>
-                        <select id="select-profesional" disabled required>
-                            <option value="">-- Primero Negocio --</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label>4. Fecha y Hora</label>
-                    <input type="datetime-local" id="input-fecha" required>
-                    <small style="color: #666;">Selecciona hora exacta (ej. 09:00, 09:30)</small>
-                </div>
-
-                <button type="submit" class="btn-primary">Confirmar Reserva</button>
-                <div id="mensaje-reserva" class="msg"></div>
-            </form>
-        </section>
-
-        <section class="card">
-            <h2>Mis Turnos Reservados</h2>
-            <div id="lista-turnos">
-                <p>Cargando turnos...</p>
+<div class="dashboard-wrapper">
+        
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>Sistema Turnos</h2>
             </div>
-        </section>
-    </div>
+            
+            <nav class="sidebar-menu">
+                <button class="menu-item active" data-target="section-turnos">
+                    <i class="fas fa-calendar-alt"></i> Mis Turnos
+                </button>
+                <button class="menu-item" data-target="section-negocio">
+                    <i class="fas fa-store"></i> Negocio
+                </button>
+                <button class="menu-item" data-target="section-profesionales">
+                    <i class="fas fa-user-md"></i> Profesionales
+                </button>
+                <button class="menu-item" data-target="section-disponibilidad">
+                    <i class="fas fa-clock"></i> Disponibilidad
+                </button>
+                <button class="menu-item" data-target="section-servicios">
+                    <i class="fas fa-concierge-bell"></i> Servicios
+                </button>
+                <button class="menu-item" data-target="section-clientes">
+                    <i class="fas fa-users"></i> Clientes
+                </button>
+                
+                <div class="spacer"></div>
+                
+                <button id="btn-logout" class="menu-item logout">
+                    <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                </button>
+            </nav>
+        </aside>
 
-    <script src="js/common/common.js"></script>
-    <script src="js/dashboard.js"></script>
-</body>
-</html>
+        <main class="main-content">
+            
+            <header class="top-header">
+                <h2 id="page-title">Gestión de Turnos</h2>
+                <div class="user-info">
+                    <span id="user-name">Cargando...</span>
+                </div>
+            </header>
 
+            <div class="content-container">
 
-</p>
-</div>
-        <script src="dashboard.js"></script>
+                <section id="section-turnos" class="view-section active">
+                    <div class="card">
+                        <h3>📅 Nuevo Turno</h3>
+                        <form id="form-turno">
+                            <div class="form-group">
+                                <label>1. Selecciona el Negocio</label>
+                                <select id="select-negocio" required>
+                                    <option value="">-- Selecciona Negocio --</option>
+                                </select>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>2. Servicio</label>
+                                    <select id="select-servicio" disabled required>
+                                        <option value="">-- Primero Negocio --</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>3. Profesional</label>
+                                    <select id="select-profesional" disabled required>
+                                        <option value="">-- Primero Negocio --</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label>4. Fecha y Hora</label>
+                                <input type="datetime-local" id="input-fecha" required>
+                                <small style="color: #666;">Selecciona hora exacta (ej. 09:00)</small>
+                            </div>
+
+                            <button type="submit" class="btn-primary">Confirmar Reserva</button>
+                            <div id="mensaje-reserva" class="msg"></div>
+                        </form>
+                    </div>
+
+                    <div class="card" style="margin-top: 20px;">
+                        <h3>Mis Turnos Reservados</h3>
+                        <div id="lista-turnos">
+                            <p>Cargando lista...</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="section-negocio" class="view-section hidden">
+                    <div class="card">
+                        <h3>🏢 Registrar Negocio</h3>
+                        <form id="form-negocio">
+                            <div class="form-group">
+                                <label>Nombre del Negocio</label>
+                                <input type="text" id="negocio-nombre" required placeholder="Ej: Peluquería Style">
+                            </div>
+                            <div class="form-group">
+                                <label>Tipo</label>
+                                <input type="text" id="negocio-tipo" placeholder="Ej: Estética, Consultorio...">
+                            </div>
+                            <button type="submit" class="btn-primary">Guardar Negocio</button>
+                            <div id="msg-negocio" class="msg"></div>
+                        </form>
+                    </div>
+                    
+                    <div class="card" style="margin-top: 20px;">
+                        <h3>Mis Negocios</h3>
+                        <div id="lista-negocios">
+                            <p>Cargando...</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="section-profesionales" class="view-section hidden">
+                    <div class="card">
+                        <h3>👨‍⚕️ Registrar Nuevo Profesional</h3>
+                        <form id="form-crear-profesional">
+                            <div class="form-group">
+                                <label>Nombre del Profesional</label>
+                                <input type="text" id="prof-nombre" placeholder="Ej: Dr. Juan Pérez" required> 
+                            </div>
+                            <div class="form-group">
+                                <label>Especialidad</label>
+                                <input type="text" id="prof-especialidad" placeholder="Ej: Cardiología..." required>
+                            </div>
+                            <div class="form-group">
+                                <label>Asignar a Negocio</label>
+                                <select id="prof-negocio" required>
+                                    <option value="">-- Selecciona Negocio --</option>
+                                </select>
+                            </div>
+
+                            <button type="submit" class="btn-primary">Guardar Profesional</button>
+                            <div id="msg-profesional" class="msg"></div>
+                        </form>
+                    </div>
+
+                    <div class="card" style="margin-top: 20px;">
+                        <h3>Profesionales Activos</h3>
+                        <div id="lista-profesionales-existentes">
+                            <p>Cargando...</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="section-disponibilidad" class="view-section hidden">
+                    <div class="card">
+                        <h3>⏰ Asignar Horarios</h3>
+                        <form id="form-disponibilidad">
+                            <div class="form-group">
+                                <label>Seleccionar Profesional</label>
+                                <select id="disp-profesional" required>
+                                    <option value="">-- Cargar Profesionales --</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Día de la Semana</label>
+                                <select id="disp-dia" required>
+                                    <option value="0">Lunes</option>
+                                    <option value="1">Martes</option>
+                                    <option value="2">Miércoles</option>
+                                    <option value="3">Jueves</option>
+                                    <option value="4">Viernes</option>
+                                    <option value="5">Sábado</option>
+                                    <option value="6">Domingo</option>
+                                </select>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Hora Inicio</label>
+                                    <input type="time" id="disp-inicio" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Hora Fin</label>
+                                    <input type="time" id="disp-fin" required>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn-primary">Guardar Horario</button>
+                            <div id="msg-disponibilidad" class="msg"></div>
+                        </form>
+                    </div>
+                </section>
+
+                <section id="section-servicios" class="view-section hidden">
+                    <div class="card">
+                        <h3>✂️ Nuevo Servicio</h3>
+                        <form id="form-servicio">
+                            <div class="form-group">
+                                <label>Nombre del Servicio</label>
+                                <input type="text" id="serv-nombre" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Duración (minutos)</label>
+                                <input type="number" id="serv-duracion" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Negocio</label>
+                                <select id="serv-negocio" required></select>
+                            </div>
+                            <button type="submit" class="btn-primary">Guardar Servicio</button>
+                            <div id="msg-servicio" class="msg"></div>
+                        </form>
+                    </div>
+
+                    <div class="card" style="margin-top: 20px;">
+                        <h3>Servicios Disponibles</h3>
+                        <div id="lista-servicios">
+                            <p>Selecciona un negocio arriba para ver sus servicios...</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="section-clientes" class="view-section hidden">
+                    <div class="card">
+                        <h3>👥 Nuevo Cliente</h3>
+                        <form id="form-cliente">
+                            <div class="form-group">
+                                <label>Nombre Completo</label>
+                                <input type="text" id="cli-nombre" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Email</label>
+                                <input type="email" id="cli-email" required>
+                            </div>
+                            <button type="submit" class="btn-primary">Registrar Cliente</button>
+                            <div id="msg-cliente" class="msg"></div>
+                        </form>
+                    </div>
+
+                    <div class="card" style="margin-top: 20px;">
+                        <h3>Base de Datos de Clientes</h3>
+                        <div id="lista-clientes">
+                            <p>Cargando...</p>
+                        </div>
+                    </div>
+                </section>
+
+<script src="js/common/common.js"></script>
+<script src="js/users/dashboard.js"></script>
+<script src="js/users/turnos.js"></script>
+<script src="js/users/profesionales.js"></script>
+<script src="js/users/negocio.js"></script>
+<script src="js/users/disponibilidad.js"></script>
+<script src="js/users/servicios.js"></script>
+<script src="js/users/clientes.js"></script>
+    
     </body>
-
+</body>
 </html>
 
-
-</body>
