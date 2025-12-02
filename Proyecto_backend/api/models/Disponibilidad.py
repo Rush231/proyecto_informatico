@@ -21,9 +21,8 @@ class Disponibilidad:
 
     @classmethod
     def crear(cls, datos):
-        """
-        Define el horario de un profesional para un día específico.
-        """
+        # Define el horario de un profesional para un día específico.
+
         if not all(k in datos for k in ('profesional_id', 'dia_semana', 'hora_inicio', 'hora_fin')):
             return False, "Faltan datos"
         conn = None
@@ -51,7 +50,7 @@ class Disponibilidad:
             cursor.execute(sql, (datos['profesional_id'], datos['dia_semana'], datos['hora_inicio'], datos['hora_fin'], id))
             conn.commit()
             if cursor.rowcount == 0:
-                return False, "No se encontró la disponibilidad"
+                return False, "No se encontro la disponibilidad"
             return True, "Disponibilidad actualizada"
         except mysql.connector.Error as err:
             return False, f"Error BD: {err}"
@@ -80,3 +79,20 @@ class Disponibilidad:
             return [cls(**r).to_dict() for r in rows]
         finally:
             if 'conn' in locals() and conn: conn.close()
+
+
+    @classmethod
+    def eliminar(cls, id):
+        conn = None
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute("DELETE FROM Disponibilidad WHERE id = %s", (id,))
+            conn.commit()
+            if cursor.rowcount == 0:
+                return False, "Disponibilidad no encontrada"
+            return True, "Disponibilidad eliminada"
+        except mysql.connector.Error as err:
+            return False, f"Error BD: {err}"
+        finally:
+            if conn: conn.close()
