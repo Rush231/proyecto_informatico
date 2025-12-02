@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const selectProfesional = document.getElementById('select-profesional');
     const selectCliente = document.getElementById('select-cliente-turno');
     const msgDiv = document.getElementById('mensaje-reserva');
+    const formTurno = document.getElementById('form-turno');
     const listaTurnosDiv = document.getElementById('lista-turnos');
  
     if (!selectNegocio) return; 
