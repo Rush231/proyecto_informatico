@@ -11,6 +11,7 @@
 </head>
 
 <body>
+    <p id="message" class="msg"></p>
         <header class = "top-bar" > 
             
             <span>
@@ -32,7 +33,7 @@
             <input type="password" id="password" name="password" required>
 
 
-            <button type="submit" id ="login-btn" onclick= "userlogin()"> Ingresar
+            <button type="button" id ="login-btn" onclick= "userLogin()"> Ingresar
                 <span class="transition"></span>
                 <span class="gradient"></span>
                 <span class="label"></span>
@@ -56,4 +57,5 @@
 
     </main>
 
-    <script src="login.js"></script>
+    <script src="js/common/common.js"></script> 
+    <script src="js/users/login.js"></script>

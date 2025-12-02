@@ -1,7 +1,8 @@
 function userRegister(){
     // Obtener los valores ingresados en el formulario
-    const username = document.getElementById('username').value;
+    const name = document.getElementById('name').value;
     const password = document.getElementById('password').value;
+    const email = document.getElementById('email').value;
 
     // Elemento para mostrar mensajes al usuario
     const messageElement = document.getElementById("message");
@@ -12,7 +13,7 @@ function userRegister(){
     const spinner = document.getElementById('loading-spinner');
 
     // Validación de campos
-    if (!username || !password) {
+    if (!name || !password || !email) {
         messageElement.innerHTML = "Por favor, complete ambos campos.";
         messageElement.classList.add('error');
         return;
@@ -30,32 +31,34 @@ function userRegister(){
         headers: {
             "Content-Type": "application/json"
         },
-        body: JSON.stringify({ username, password })
+        body: JSON.stringify({name , password, email })
     };
 
     // Realizar la solicitud de creación de usuario
-    fetch(apiURL + '/registro', requestOptions)
+    fetch(apiURL + '/crear_usuario', requestOptions)
         .then(response => handleResponse(response))
         .then(response => {
-            // El usuario se creó correctamente, si es necesario se usa el 
-            // objeto response para ejecutar más acciones
-            console.log(response)
-            messageElement.innerHTML = "Usuario creado correctamente";
-            messageElement.classList.add('success');            
+            // ÉXITO
+            messageElement.innerHTML = "¡Usuario creado con éxito! Redirigiendo...";
+            messageElement.classList.add('success');
+            
+            // 5. Redirección al login después de 1.5 segundos
+            setTimeout(() => {
+                window.location.href = "login.html";
+            }, 1500);
         })
         .catch(error => {
-            // Hubo algún error, ya sea en respueta de la API o error de conexión
+            // ERROR
             if (error.message === "Failed to fetch") {
-                messageElement.innerHTML = "No se pudo conectar con el servidor. Verifique su conexión o intente más tarde.";
+                messageElement.innerHTML = "No se pudo conectar con el servidor.";
             } else {
-                messageElement.innerHTML = error.message || "Error al crear el usuario";
+                // Muestra el mensaje de error específico que viene del backend
+                messageElement.innerHTML = error.error || error.message || "Error al crear el usuario";
             }
             messageElement.classList.add('error');
-            messageElement.classList.add('error');
-        })
-        .finally(() => {
-            // Ocultar el spinner y activar el botón nuevamente
-            spinner.style.display = 'none';
+            
+            // Reactivar botón inmediatamente si hubo error
             submitBtn.disabled = false;
+            if(spinner) spinner.style.display = 'none';
         });
 }
