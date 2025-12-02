@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!negocioId) return;
 
         // Fetch Servicios
-        fetch(`${apiURL}/servicios?negocio_id=${negocioId}`)
+        fetch(`${apiURL}/servicios/${negocioId}`)
             .then(res => res.json())
             .then(servicios => {
                 servicios.forEach(s => {
@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
         // Fetch Profesionales
-        fetch(`${apiURL}/profesionales?negocio_id=${negocioId}`)
+        fetch(`${apiURL}//profesionales/${negocioId}`)
             .then(res => res.json())
             .then(profesionales => {
                 profesionales.forEach(p => {

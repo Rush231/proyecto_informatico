@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if(!id) return;
         
         listaDiv.innerHTML = 'Cargando...';
-        fetch(`${apiURL}/servicios?negocio_id=${id}`)
+        fetch(`${apiURL}/servicios/{id}`)
             .then(res => res.json())
             .then(data => {
                 if(data.length === 0) {
@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 let html = '<ul style="list-style:none; padding:0;">';
                 data.forEach(s => {
                     html += `<li style="padding:10px; border-bottom:1px solid #eee;">
-                                🏷️ <strong>${s.name}</strong> - ⏱ ${s.duracion} min
+                                 <strong>${s.name}</strong> - ⏱ ${s.duracion} min
                              </li>`;
                 });
                 html += '</ul>';
@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         try {
-            const response = await fetch(apiURL + '/crear_servicio', {
+            const response = await fetch(apiURL + '/crear-servicio', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)

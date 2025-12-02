@@ -11,7 +11,7 @@ class Servicio:
     def to_dict(self):
         return {
             "id": self.id,
-            "nombre": self.name,
+            "name": self.name,
             "duracion": self.duracion,
             "negocio_id": self.negocio_id
         }
