@@ -1,15 +1,30 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // Referencias al DOM
     const selectNegocio = document.getElementById('select-negocio');
     const selectServicio = document.getElementById('select-servicio');
     const selectProfesional = document.getElementById('select-profesional');
-    const formTurno = document.getElementById('form-turno');
+    const selectCliente = document.getElementById('select-cliente-turno');
     const msgDiv = document.getElementById('mensaje-reserva');
-    const userId = localStorage.getItem('id');
-
-    // Solo ejecutar si existe el elemento en el HTML actual
+    const listaTurnosDiv = document.getElementById('lista-turnos');
+ 
     if (!selectNegocio) return; 
+    
+    
+    fetch(apiURL + '/clientes')
+        .then(res => res.json())
+        .then(data => {
+            selectCliente.innerHTML = '<option value="">-- Selecciona Cliente --</option>';
+            data.forEach(cli => {
+                const opt = document.createElement('option');
+                opt.value = cli.id; 
+                opt.textContent = cli.name || cli.email;
+                selectCliente.appendChild(opt);
+            });
+        })
+        .catch(err => console.error("Error cargando clientes:", err));
+    // --------------------------------------------------
 
-    // 1. Cargar Negocios
+    // 1. Cargar Negocios 
     fetch(apiURL + '/negocios')
         .then(res => res.json())
         .then(data => {
@@ -20,10 +35,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 option.textContent = negocio.name;
                 selectNegocio.appendChild(option);
             });
-        })
-        .catch(err => console.error("Error cargando negocios:", err));
+        });
 
-    // 2. Cambio de Negocio (Cascada)
+    // 2. Cambio de Negocio
     selectNegocio.addEventListener('change', (e) => {
         const negocioId = e.target.value;
         selectServicio.innerHTML = '<option value="">-- Selecciona Servicio --</option>';
@@ -60,14 +74,14 @@ document.addEventListener('DOMContentLoaded', () => {
             });
     });
 
-    // 3. Enviar Turno
+    // 3. Enviar Turno 
     formTurno.addEventListener('submit', async (e) => {
         e.preventDefault();
         msgDiv.textContent = "Procesando...";
         msgDiv.className = "msg";
 
         const datosTurno = {
-            cliente_id: userId,
+            cliente_id: selectCliente.value, 
             profesional_id: selectProfesional.value,
             servicio_id: selectServicio.value,
             fecha_hora: document.getElementById('input-fecha').value.replace('T', ' ') + ':00'
@@ -94,4 +108,8 @@ document.addEventListener('DOMContentLoaded', () => {
             msgDiv.className = "msg error";
         }
     });
+
+   
+
 });
+

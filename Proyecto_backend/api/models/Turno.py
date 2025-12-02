@@ -230,4 +230,42 @@ class Turno:
         finally:
             if conn:
                 conn.close()
+
+    @classmethod
+    def obtener_por_cliente(cls, cliente_id):
+        try:
+            connection = get_db_connection()
+            cursor = connection.cursor(dictionary=True)
+            
+            # Traemos los datos cruzando tablas para obtener los nombres
+            query = """
+                SELECT 
+                    t.id, 
+                    t.fecha_hora, 
+                    s.name AS servicio, 
+                    p.name AS profesional, 
+                    n.name AS negocio
+                FROM Turno t
+                JOIN Servicio s ON t.servicio_id = s.id
+                JOIN Profesional p ON t.profesional_id = p.id
+                JOIN Negocio n ON s.negocio_id = n.id
+                WHERE t.cliente_id = %s
+                ORDER BY t.fecha_hora DESC
+            """
+            
+            cursor.execute(query, (cliente_id,))
+            result = cursor.fetchall()
+            cursor.close()
+            connection.close()
+            
+            # Formateamos la fecha para que se vea bien en JSON
+            for turno in result:
+                if turno['fecha_hora']:
+                    turno['fecha_hora'] = turno['fecha_hora'].strftime('%Y-%m-%d %H:%M')
+            
+            return result
+
+        except Exception as e:
+            print(f"Error al obtener turnos: {e}")
+            return []
   

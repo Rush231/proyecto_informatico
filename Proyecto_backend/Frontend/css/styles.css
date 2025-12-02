@@ -2,8 +2,6 @@
 
 
 
-/* --- RESET BÁSICO --- */
-* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Arial', sans-serif; }
 
 
 /* Estilo general del body */
@@ -398,3 +396,50 @@ select, input {
 .msg { margin-top: 10px; padding: 10px; border-radius: 4px; text-align: center; }
 .msg.success { background-color: #d4edda; color: #155724; }
 .msg.error { background-color: #f8d7da; color: #721c24; }
+
+/* --- Estilos Específicos para el Login --- */
+body.login-page {
+    display: flex;           /* Activa Flexbox */
+    justify-content: left; /* Centra horizontalmente */
+    align-items: center;     /* Centra verticalmente */
+    height: 100vh;           /* Altura completa de la ventana */
+    margin: 0;               /* Elimina márgenes por defecto */
+    background-color: #f4f4f4; /* Color de fondo opcional */
+
+
+
+}
+
+/* Asegura que el contenedor del login no se estire de más */
+.login-container {
+    width: 100%;
+    max-width: 400px;        /* Ancho máximo de la tarjeta */
+    padding: 20px;
+    /* Si tenías estilos previos de tarjeta, asegúrate que sigan aquí */
+}
+
+
+
+/* --- Estilos Específicos para el Login --- */
+body.register-page {
+    display: flex;           /* Activa Flexbox */
+    justify-content: auto; /* Centra horizontalmente */
+    align-items: center;     /* Centra verticalmente */
+    height: 100vh;           /* Altura completa de la ventana */
+    margin: 0;               /* Elimina márgenes por defecto */
+    background-color: #f4f4f4; /* Color de fondo opcional */
+
+
+
+}
+
+/* Asegura que el contenedor del login no se estire de más */
+.register-container {
+    width: 100%;
+    max-width: 400px;        /* Ancho máximo de la tarjeta */
+    padding: 20px;
+    /* Si tenías estilos previos de tarjeta, asegúrate que sigan aquí */
+}
+
+
+

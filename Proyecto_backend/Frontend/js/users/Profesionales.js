@@ -97,7 +97,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Función global para el botón borrar (para que funcione el onclick del HTML string)
     window.borrarProf = (id) => {
-        if(!confirm('¿Borrar?')) return;
+        if(!confirm('¿Quieres eliminar a esta persona?')) return;
         fetch(`${apiURL}/profesional/borrar/${id}`, { method: 'DELETE' })
             .then(res => {
                 if(res.ok) { 
