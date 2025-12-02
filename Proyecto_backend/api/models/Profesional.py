@@ -78,7 +78,8 @@ class Profesional:
 
     @classmethod
     def get_todos_los_profesionales(cls):
-        query = "SELECT id, name AS nombre, negocio_id FROM profesional"
+        # CORRECTO: Dejamos "name" tal cual
+        query = "SELECT id, name, negocio_id FROM Profesional"
         conn = None
         try:
             conn = get_db_connection()
@@ -93,17 +94,3 @@ class Profesional:
             if conn:
                 conn.close()
 
-    classmethod
-    def obtener_por_negocio(cls, negocio_id):
-        try:
-            conn = get_db_connection()
-            cursor = conn.cursor(dictionary=True)
-            # Trae clientes de ESTE negocio
-            sql = "SELECT * FROM Cliente WHERE negocio_id = %s"
-            cursor.execute(sql, (negocio_id,))
-            rows = cursor.fetchall()
-            return [cls(r['id'], r['name'], r['email'], r['negocio_id']).to_dict() for r in rows]
-        except mysql.connector.Error:
-            return []
-        finally:
-            if 'conn' in locals() and conn: conn.close()

@@ -27,8 +27,17 @@ def listar_profesionales(negocio_id):
 @app.route('/profesionales', methods=['GET'])
 def get_profesionales():
     try:
-         lista = Profesional.get_todos_los_profesionales()
-         return jsonify(lista), 200
+        # 1. Buscamos si viene un filtro en la URL (ej: ?negocio_id=5)
+        negocio_id = request.args.get('negocio_id')
+        
+        if negocio_id:
+            # Si hay filtro, usamos el método que busca por negocio
+            lista = Profesional.obtener_por_negocio(negocio_id)
+        else:
+            # Si NO hay filtro, traemos todos (para el panel de admin)
+            lista = Profesional.get_todos_los_profesionales()
+            
+        return jsonify(lista), 200
     except Exception as e:
          return jsonify({"error": str(e)}), 400
 

@@ -15,8 +15,7 @@ class Cliente:
             "email": self.email,
             "negocio_id": self.negocio_id
         }
-    
-    @classmethod # <--- ESTO ES CRUCIAL PARA EVITAR EL ERROR DE 'datos'
+    @classmethod
     def validar(cls, datos):
         if not datos or not isinstance(datos, dict):
             return False, "Datos inválidos"
@@ -24,37 +23,85 @@ class Cliente:
             return False, "El nombre es obligatorio"
         if 'email' not in datos or not datos['email'].strip():
             return False, "El email es obligatorio"
+        # NO validamos negocio_id aquí, para que sea opcional
         return True, "OK"
 
     @classmethod
     def crear(cls, datos):
-        # 1. Validar nombre y email
-        valido, msg = cls.validar(datos)
-        if not valido:
-            return False, msg
+        # Validamos lo básico
+        if 'name' not in datos or 'email' not in datos:
+            return False, "Nombre y Email son obligatorios"
+            
+        # Obtenemos el negocio_id. Si no viene, será None (NULL en la BD)
+        negocio_id = datos.get('negocio_id') 
 
-        # 2. Obtener negocio_id (puede ser None)
-        negocio_id = datos.get('negocio_id')
-
-        conn = None
         try:
             conn = get_db_connection()
             cursor = conn.cursor()
             
-            # 3. Insertar (negocio_id puede ser NULL en la BD)
+            # Insertamos. Si negocio_id es None, se guardará como NULL
             sql = "INSERT INTO Cliente (name, email, negocio_id) VALUES (%s, %s, %s)"
             cursor.execute(sql, (datos['name'], datos['email'], negocio_id))
             conn.commit()
-            
-            return True, {"id": cursor.lastrowid, "mensaje": "Cliente creado exitosamente"}
+            return True, {"id": cursor.lastrowid, "mensaje": "Cliente registrado exitosamente"}
         except mysql.connector.Error as err:
-            return False, f"Error de Base de Datos: {err}"
+            return False, f"Error BD: {err}"
         finally:
-            if conn: conn.close()
+            if 'conn' in locals() and conn:
+                conn.close()
 
-    # ... (Manten tus otros métodos: obtener_por_negocio, obtener_todos, actualizar, eliminar) ...
-    # Asegúrate de que todos tengan @classmethod si usan 'cls'
+    @classmethod
+    def obtener_por_negocio(cls, negocio_id):
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor(dictionary=True)
+            sql = "SELECT * FROM Cliente WHERE negocio_id = %s"
+            cursor.execute(sql, (negocio_id,))
+            rows = cursor.fetchall()
+            return [cls(r['id'], r['name'], r['email'], r['negocio_id']).to_dict() for r in rows]
+        except mysql.connector.Error:
+            return []
+        finally:
+            if 'conn' in locals() and conn: conn.close()
+
     @classmethod
     def obtener_todos_los_clientes(cls):
-        # ... tu código existente ...
-        pass # Rellena con tu código previo
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor(dictionary=True)
+            sql = "SELECT * FROM Cliente"
+            cursor.execute(sql)
+            rows = cursor.fetchall()
+            return [cls(r['id'], r['name'], r['email'], r['negocio_id']).to_dict() for r in rows]
+        except mysql.connector.Error:
+            return []
+        finally:
+            if 'conn' in locals() and conn: conn.close()
+
+    @classmethod
+    def actualizar(cls, id, datos):
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            
+            sql = "UPDATE Cliente SET name=%s, email=%s WHERE id=%s"
+            cursor.execute(sql, (datos['nombre'], datos['email'], id))
+            conn.commit()
+            return True, "Cliente actualizado"
+        except mysql.connector.Error as err:
+            return False, f"Error BD: {err}"
+        finally:
+            if 'conn' in locals() and conn: conn.close()
+
+    @classmethod
+    def eliminar(cls, id):
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute("DELETE FROM Cliente WHERE id = %s", (id,))
+            conn.commit()
+            return True, "Cliente eliminado"
+        except mysql.connector.Error as err:
+            return False, f"Error BD: {err}"
+        finally:
+            if 'conn' in locals() and conn: conn.close()
