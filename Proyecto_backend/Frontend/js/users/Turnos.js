@@ -1,32 +1,21 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // Referencias al DOM
     const selectNegocio = document.getElementById('select-negocio');
     const selectServicio = document.getElementById('select-servicio');
     const selectProfesional = document.getElementById('select-profesional');
-    const selectCliente = document.getElementById('select-cliente-turno');
-    const msgDiv = document.getElementById('mensaje-reserva');
     const formTurno = document.getElementById('form-turno');
-    const listaTurnosDiv = document.getElementById('lista-turnos');
- 
-    if (!selectNegocio) return; 
-    
-    
-    fetch(apiURL + '/clientes')
-        .then(res => res.json())
-        .then(data => {
-            selectCliente.innerHTML = '<option value="">-- Selecciona Cliente --</option>';
-            data.forEach(cli => {
-                const opt = document.createElement('option');
-                opt.value = cli.id; 
-                opt.textContent = cli.name || cli.email;
-                selectCliente.appendChild(opt);
-            });
-        })
-        .catch(err => console.error("Error cargando clientes:", err));
-    // --------------------------------------------------
+    const msgDiv = document.getElementById('mensaje-reserva');
+    const userId = localStorage.getItem('id');
+    const selectCliente = document.getElementById('select-cliente-turno');
 
-    // 1. Cargar Negocios 
-    fetch(apiURL + '/negocios')
+    // 1. IMPORTANTE: Verificar que los elementos existan antes de seguir
+    // Si selectNegocio no existe, detenemos el script para evitar errores.
+    if (!selectNegocio || !selectServicio || !selectProfesional || !formTurno) {
+        // Opcional: console.log("Turnos.js: No estamos en la vista de turnos o faltan elementos.");
+        return; 
+    }
+
+    // 2. Cargar Negocios
+    fetch(apiURL + '/negocios') // apiURL viene de common.js
         .then(res => res.json())
         .then(data => {
             selectNegocio.innerHTML = '<option value="">-- Selecciona Negocio --</option>';
@@ -36,13 +25,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 option.textContent = negocio.name;
                 selectNegocio.appendChild(option);
             });
-        });
+        })
+        .catch(err => console.error("Error cargando negocios:", err)); // Asegúrate que diga "negocios"
 
-    // 2. Cambio de Negocio
+    // 3. Cambio de Negocio (Cascada)
     selectNegocio.addEventListener('change', (e) => {
         const negocioId = e.target.value;
         selectServicio.innerHTML = '<option value="">-- Selecciona Servicio --</option>';
         selectProfesional.innerHTML = '<option value="">-- Selecciona Profesional --</option>';
+        
+        // Deshabilitar hasta que se seleccione algo
         selectServicio.disabled = true;
         selectProfesional.disabled = true;
 
@@ -61,8 +53,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 selectServicio.disabled = false;
             });
 
-        // Fetch Profesionales
-        fetch(`${apiURL}//profesionales/${negocioId}`)
+        // Fetch Profesionales (CORREGIDO: quitada la doble barra //)
+        fetch(`${apiURL}/profesionales/${negocioId}`) 
             .then(res => res.json())
             .then(profesionales => {
                 profesionales.forEach(p => {
@@ -75,17 +67,28 @@ document.addEventListener('DOMContentLoaded', () => {
             });
     });
 
-    // 3. Enviar Turno 
+    // 4. Enviar Turno
     formTurno.addEventListener('submit', async (e) => {
         e.preventDefault();
+        
+        // Verificar nuevamente valores nulos por seguridad
+        if (!selectProfesional.value || !selectServicio.value) {
+            msgDiv.textContent = "Por favor selecciona todos los campos.";
+            msgDiv.className = "msg error";
+            return;
+        }
+
         msgDiv.textContent = "Procesando...";
         msgDiv.className = "msg";
 
+        const inputFecha = document.getElementById('input-fecha');
+        if (!inputFecha) return;
+
         const datosTurno = {
-            cliente_id: selectCliente.value, 
+            cliente_id: selectCliente,
             profesional_id: selectProfesional.value,
             servicio_id: selectServicio.value,
-            fecha_hora: document.getElementById('input-fecha').value.replace('T', ' ') + ':00'
+            fecha_hora: inputFecha.value.replace('T', ' ') + ':00'
         };
 
         try {
@@ -100,6 +103,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 msgDiv.textContent = "¡Turno reservado con éxito!";
                 msgDiv.className = "msg success";
                 formTurno.reset();
+                // Resetear selects dependientes
+                selectServicio.innerHTML = '<option value="">-- Primero Negocio --</option>';
+                selectProfesional.innerHTML = '<option value="">-- Primero Negocio --</option>';
+                selectServicio.disabled = true;
+                selectProfesional.disabled = true;
             } else {
                 msgDiv.textContent = `Error: ${data.error || 'No se pudo reservar'}`;
                 msgDiv.className = "msg error";
@@ -107,10 +115,8 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             msgDiv.textContent = "Error de conexión";
             msgDiv.className = "msg error";
+            console.error(error);
         }
     });
-
-   
-
 });
 

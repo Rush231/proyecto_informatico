@@ -5,14 +5,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (!form) return;
 
-    // Función auxiliar para cargar profesionales de TODOS los negocios
-    // (O podrías filtrar por negocio si tuvieras un select de negocio aquí también)
+    
     function cargarProfesionales() {
-        // Asumiendo que tienes una ruta para traer todos o filtras por el primer negocio que encuentres
-        // Por simplicidad, aquí intentamos traer profesionales de un negocio ID=1 o adaptamos la API
-        // Si tu API requiere obligatoriamente negocio_id, deberías agregar un select de negocio antes.
-        
-        // OPCIÓN A: Traer todos los negocios y luego todos sus profesionales (Cascada interna)
+       
         fetch(apiURL + '/negocios')
             .then(res => res.json())
             .then(negocios => {
@@ -42,7 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const data = {
             profesional_id: selectProf.value,
             dia_semana: document.getElementById('disp-dia').value,
-            hora_inicio: document.getElementById('disp-inicio').value, // Formato "HH:MM"
+            hora_inicio: document.getElementById('disp-inicio').value, 
             hora_fin: document.getElementById('disp-fin').value
         };
 

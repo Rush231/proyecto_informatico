@@ -92,7 +92,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Carga inicial (todos)
+    
     cargarProfesionales();
     
     // Función global para el botón borrar (para que funcione el onclick del HTML string)

@@ -61,7 +61,7 @@ function userLogin() {
             }
         })
         .catch(error => {
-            // Hubo algún error, ya sea en respueta de la API o error de conexión
+            
             if (error.message === "Failed to fetch") {
                 messageElement.innerHTML = "No se pudo conectar con el servidor. Verifique su conexión o intente más tarde.";
             } else {

@@ -28,7 +28,7 @@ class Cliente:
 
     @classmethod
     def crear(cls, datos):
-        # Validamos lo básico
+        #V alidamos lo básico
         if 'name' not in datos or 'email' not in datos:
             return False, "Nombre y Email son obligatorios"
             
