@@ -17,3 +17,7 @@ def crear_turno():
         return jsonify({"error": respuesta}), status_code
     
 
+@app.route('/turnos/cliente/<int:cliente_id>', methods=['GET'])
+def listar_turnos_cliente(cliente_id):
+    turnos = Turno.obtener_por_cliente(cliente_id)
+    return jsonify(turnos), 200

@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     // 1. Verificar Autenticación
-    const userId = localStorage.getItem('id'); // Ojo: en login.js guardaste 'id', no 'user_id'
+    const userId = localStorage.getItem('id'); 
     const name = localStorage.getItem('name');
     
     if (!userId) {
@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
     
-    // Mostrar nombre de usuario
+    //  nombre de usuario
     const userNameElement = document.getElementById('name');
     if(userNameElement) userNameElement.textContent = `Hola, ${name || 'Usuario'}`;
 
@@ -41,7 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log("Dashboard JS cargado correctamente");
 
     // 1. Verificar Auth
-    const userId = localStorage.getItem('id'); // O 'user_id' según tu login
+    const userId = localStorage.getItem('id'); 
     if (!userId) {
         console.log("No hay usuario, redirigiendo...");
         window.location.href = 'login.html';

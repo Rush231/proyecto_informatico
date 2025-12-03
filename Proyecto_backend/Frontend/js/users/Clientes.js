@@ -7,7 +7,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 1. Función para cargar clientes (Asumiendo que tienes esta ruta GET)
     function cargarClientes() {
-        // Nota: Asegúrate de tener @app.route('/clientes', methods=['GET']) en tu Python
         fetch(apiURL + '/clientes') 
             .then(res => {
                 if(!res.ok) throw new Error("No hay ruta GET /clientes");

@@ -18,7 +18,6 @@ def listar_servicios(negocio_id):
     return jsonify(lista), 200
 
 
-
 @app.route('/servicio/<int:id>', methods=['DELETE'])
 def borrar_servicio(id):
     exito, mensaje = Servicio.eliminar(id)
