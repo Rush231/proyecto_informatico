@@ -165,43 +165,40 @@ class Usuario:
             conn = get_db_connection()
             cursor = conn.cursor(dictionary=True)
             
-            # 1. Buscamos por nombre de usuario (auth.username)
-            sql = "SELECT id, name, password FROM usuario WHERE name = %s"
+            # 1. Buscamos por nombre de usuario E INCLUIMOS EL ROL
+            sql = "SELECT id, name, password, rol FROM usuario WHERE name = %s" # <--- CAMBIO AQUÍ
             cursor.execute(sql, (auth.username,))
             user_data = cursor.fetchone()
 
-            # 2. VALIDACIÓN CLAVE: Verificamos si user_data tiene datos antes de usarlo
             if not user_data:
-                # Si es None, lanzamos error o retornamos None para manejarlo en la ruta
                 raise ValueError("Usuario no encontrado")
 
-            # 3. Accedemos por CLAVE ['password'], no por índice [2]
             password_bd = user_data['password']
-            print(f"Contraseña en BD: {password_bd}")
-            # 4. Verificamos el hash
+            
             if not check_password_hash(password_bd, auth.password):
                 raise ValueError("Contraseña incorrecta")
             
-            # 5. Generación del Token
-            # Nota: auth suele tener .username, no .name. Usamos el nombre real de la BD.
+            # 5. Token Payload (Opcional: incluir rol en el token)
             token_payload = {
                 'name': user_data['name'], 
                 'id': user_data['id'],
+                'rol': user_data['rol'], # <--- Útil para validaciones en backend
                 'exp': datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=2)
             }
             
             TOKEN = jwt.encode(token_payload, app.config['SECRET_KEY'], algorithm="HS256")
             
+            # Retornamos el rol para que el JS lo pueda leer
             return {
                 'token': TOKEN,
                 'id': user_data['id'],
-                'name': user_data['name'] 
+                'name': user_data['name'],
+                'rol': user_data['rol']  # <--- IMPORTANTE: Enviar el rol al frontend
             }
 
         except Exception as e:
-            # Es buena práctica imprimir el error para verlo en consola
             print(f"Error en login: {e}") 
-            return None # O relanzar la excepción según prefieras
+            return None 
         finally:
             if conn:
                 conn.close()
