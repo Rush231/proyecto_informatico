@@ -3,7 +3,7 @@ from flask import jsonify, request
 from api.db.db_config import get_db_connection
 from api.db.db_config import mysql
 from api.models.Turno import Turno
-
+from api.models.Servicio import Servicio
 @app.route('/crear-turno', methods=['POST'])
 def crear_turno():
     datos = request.json
@@ -21,3 +21,37 @@ def crear_turno():
 def listar_turnos_cliente(cliente_id):
     turnos = Turno.obtener_por_cliente(cliente_id)
     return jsonify(turnos), 200
+
+
+from api.models.Servicio import Servicio  # <--- Asegúrate de importar esto arriba
+# ... otros imports ...
+
+@app.route('/turnos/disponibles', methods=['GET'])
+def obtener_horarios_disponibles():
+    # 1. Recibir datos
+    profesional_id = request.args.get('profesional_id')
+    fecha = request.args.get('fecha')
+    servicio_id = request.args.get('servicio_id')
+
+    if not all([profesional_id, fecha, servicio_id]):
+        return jsonify({"error": "Faltan parámetros"}), 400
+
+    try:
+        # 2. Pedir al MODELO la información del servicio
+        servicio = Servicio.obtener_por_id(servicio_id)
+        
+        if not servicio:
+            return jsonify({"error": "Servicio no encontrado"}), 404
+
+        # 3. Pedir al MODELO Turno que calcule los horarios
+        # (La lógica pesada sigue estando en el modelo Turno, como debe ser)
+        horarios = Turno.buscar_horarios_disponibles(
+            profesional_id, 
+            fecha, 
+            servicio['duracion']
+        )
+        
+        return jsonify(horarios), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500

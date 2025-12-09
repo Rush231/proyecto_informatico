@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta, date
 from api.db.db_config import get_db_connection
 import mysql.connector
+from datetime import datetime, timedelta
 class Turno:
     def __init__(self, cliente_id, profesional_id, servicio_id, fecha_hora, estado='reservado', id=None):
         self.id = id
@@ -56,8 +57,15 @@ class Turno:
                 def asegurar_time(valor):
                     if isinstance(valor, timedelta):
                         return (datetime.min + valor).time()
-                    return valor # Asumimos que ya es time o datetime
-
+                    if isinstance(valor, str):
+                        # Parche para cuando la DB devuelve strings tipo "09:00:00"
+                        try:
+                            return datetime.strptime(valor, "%H:%M:%S").time()
+                        except ValueError:
+                             # Intento alternativo para formato corto "09:00"
+                            return datetime.strptime(valor, "%H:%M").time()
+                    return valor
+                
                 hora_inicio_time = asegurar_time(regla['hora_inicio'])
                 hora_fin_time = asegurar_time(regla['hora_fin'])
 
@@ -269,3 +277,57 @@ class Turno:
             print(f"Error al obtener turnos: {e}")
             return []
   
+
+    @classmethod
+    def obtener_slots_calendario(cls, profesional_id, servicio_id, fecha_inicio_str, fecha_fin_str):
+        """
+        Genera la estructura de eventos compatible con FullCalendar para un rango de fechas.
+        Retorna: Lista de diccionarios.
+        """
+        conn = get_db_connection()
+        try:
+            cursor = conn.cursor(dictionary=True)
+            
+            # 1. Obtener duración del servicio
+            cursor.execute("SELECT duracion FROM Servicio WHERE id = %s", (servicio_id,))
+            servicio = cursor.fetchone()
+            duracion = servicio['duracion'] if servicio else 30
+            
+            eventos = []
+            
+            # Convertir strings a objetos fecha
+            # FullCalendar suele enviar fechas con hora (ej: 2023-11-20T00:00:00), cortamos la parte de la fecha
+            fecha_actual = datetime.strptime(fecha_inicio_str.split('T')[0], '%Y-%m-%d')
+            fecha_limite = datetime.strptime(fecha_fin_str.split('T')[0], '%Y-%m-%d')
+
+            # 2. Iterar por cada día del rango
+            while fecha_actual <= fecha_limite:
+                fecha_str = fecha_actual.strftime('%Y-%m-%d')
+                
+                # Reutilizamos tu lógica existente que ya busca huecos libres y valida bloqueos
+                horarios = cls.buscar_horarios_disponibles(profesional_id, fecha_str, duracion)
+                
+                for hora in horarios:
+                    inicio_iso = f"{fecha_str}T{hora}"
+                    hora_dt = datetime.strptime(inicio_iso, '%Y-%m-%dT%H:%M')
+                    fin_dt = hora_dt + timedelta(minutes=duracion)
+                    
+                    eventos.append({
+                        "title": "Disponible",
+                        "start": inicio_iso,
+                        "end": fin_dt.strftime('%Y-%m-%dT%H:%M'),
+                        "color": "#28a745", # Verde
+                        "textColor": "white",
+                        # "extendedProps": { "servicio_id": servicio_id } # Útil si necesitas más datos en el click
+                    })
+                
+                fecha_actual += timedelta(days=1)
+                
+            return eventos
+
+        except Exception as e:
+            print(f"Error en obtener_slots_calendario: {e}")
+            return [] # Retornar lista vacía en caso de error para no romper el front
+        finally:
+            if conn:
+                conn.close()
