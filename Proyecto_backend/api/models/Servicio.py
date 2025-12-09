@@ -89,3 +89,20 @@ class Servicio:
             return []
         finally:
             conn.close()
+
+
+    @classmethod
+    def obtener_por_id(cls, id):
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor(dictionary=True)
+            cursor.execute("SELECT * FROM Servicio WHERE id = %s", (id,))
+            row = cursor.fetchone()
+            if row:
+                return cls(**row).to_dict()
+            return None
+        except mysql.connector.Error as err:
+            print(f"Error BD: {err}")
+            return None
+        finally:
+            if 'conn' in locals() and conn: conn.close()

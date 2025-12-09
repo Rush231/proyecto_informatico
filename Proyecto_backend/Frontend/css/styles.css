@@ -395,3 +395,88 @@ select, input {
 .msg { margin-top: 10px; padding: 10px; border-radius: 4px; text-align: center; }
 .msg.success { background-color: #d4edda; color: #155724; }
 .msg.error { background-color: #f8d7da; color: #721c24; }
+
+
+/* css/styles.css */
+
+/* Corrección de tu clase .card (tenía "50 px" separado, debe ser junto) */
+.card {
+    background: white;
+    padding: 40px 50px; /* Corregido */
+    border-radius: 18px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    margin: 0 auto 20px auto;
+}
+
+.slots-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.slot-btn {
+    padding: 8px;
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s;
+}
+
+.slot-btn:hover {
+    background-color: #e0e0e0;
+}
+
+.slot-btn.selected {
+    background-color: #4CAF50;
+    color: white;
+    border-color: #45a049;
+}
+
+
+/* Contenedor de la cuadrícula de horarios */
+.slots-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); /* Botones un poco más anchos */
+    gap: 15px; /* Más espacio entre ellos */
+    padding: 10px 0;
+}
+
+/* 1. Estilo base del botón (Normal) */
+.slot-btn {
+    background-color: #ffffff;
+    border: 2px solid #e0e0e0; /* Borde suave */
+    border-radius: 12px;       /* Bordes bien redondeados */
+    padding: 12px 5px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #555;
+    cursor: pointer;
+    transition: all 0.2s ease; /* Animación rápida */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+/* 2. Al pasar el mouse (Hover): Se ilumina */
+.slot-btn:hover {
+    border-color: #4CAF50;    /* Borde verde */
+    background-color: #f1f8e9; /* Fondo verde muy claro */
+    color: #2e7d32;
+    transform: translateY(-3px); /* Se "levanta" un poquito */
+    box-shadow: 0 5px 15px rgba(76, 175, 80, 0.2); /* Sombra verde */
+}
+
+/* 3. Botón Seleccionado (Activo): Color sólido intenso */
+.slot-btn.selected {
+    background-color: #4CAF50; /* Verde principal */
+    border-color: #4CAF50;
+    color: white;
+    box-shadow: 0 4px 10px rgba(76, 175, 80, 0.4);
+    transform: scale(1.05); /* Crece levemente */
+}
+
+/* (Opcional) Si quieres que parezca presionado al hacer click */
+.slot-btn:active {
+    transform: scale(0.95);
+}
