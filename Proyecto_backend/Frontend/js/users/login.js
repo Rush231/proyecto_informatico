@@ -49,8 +49,9 @@ function userLogin() {
             if (response.token) {
                 // Almacenar los datos de sesión en localStorage
                 localStorage.setItem("token", response.token);
-                localStorage.setItem("username", response.username);
+                localStorage.setItem("username", response.username || response.name); // Asegúrate que coincida con lo que devuelve python
                 localStorage.setItem("id", response.id);
+                localStorage.setItem("rol", response.rol); // <--- NUEVO: Guardar el rol
 
                 // Redirigir al usuario al dashboard
                 window.location.href = "dashboard.html";
