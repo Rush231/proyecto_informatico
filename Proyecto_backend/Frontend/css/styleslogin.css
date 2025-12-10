@@ -1,3 +1,41 @@
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Arial', sans-serif;
+}
+
+body.login-page {
+    background-color: #f4f4f9; /* Mismo color de fondo que tenías */
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Barra superior de contacto */
+.top-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 15px 20px;
+    background-color: #1f2937; /* Color oscuro */
+    color: white;
+    text-align: right;
+    font-size: 0.9rem;
+}
+
+.page-title {
+    text-align: center;
+    color: #333;
+    margin-bottom: 20px;
+    font-size: 1.8rem;
+}
+
+/* Aquí debajo sigue tu código original de styleslogin.css */
 .form {
   background-color: #fff;
   display: block;
@@ -5,7 +43,6 @@
   max-width: 350px;
   border-radius: 0.5rem;
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  
 }
 
 .form-title {
@@ -62,4 +99,8 @@
 
 .signup-link a {
   text-decoration: underline;
+
 }
+
+
+

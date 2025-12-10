@@ -1,55 +1,53 @@
 <!DOCTYPE html>
 <html lang="es-AR">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Registro de Usuario</title>
-        <link rel="stylesheet" href="css/styles.css">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Usuario</title>
+    <link rel="stylesheet" href="css/styleslogin.css">
+</head>
 
-        <body class="register-page"> 
+<body class="login-page"> 
     
+    <header class="top-bar"> 
+        <span>Contacto: soporte@turnos.com | +54 11 1234-5678</span>
+    </header>
+
     <div class="register-container">
-        </div>
+        <main class="form-container">
+            <form class="form" id="registerForm">
+                <p class="form-title">Crear Cuenta</p>
+                
+                <div class="input-container">
+                    <input type="text" id="name" name="name" placeholder="Nombre de Usuario" required>
+                </div>
+                
+                <div class="input-container">
+                    <input type="email" id="email" name="email" placeholder="Correo Electrónico" required>
+                </div>
+                
+                <div class="input-container">
+                    <input type="password" id="password" name="password" placeholder="Contraseña" required>
+                </div>
+                
+                <button type="button" id="register-btn" class="submit" onclick="userRegister()">
+                    Registrarse
+                </button>
+                 
+                <div id="loading-spinner" style="display:none; text-align:center; margin-top:10px;">⏳ Procesando...</div>
+                
+                <p class="signup-link">
+                    ¿Ya tienes cuenta? <a href="login.html">Inicia sesión aquí</a>
+                </p>
 
-
-    </head>
-<body>
-    <main class="form-container"> <form class="form" id="registerForm">
-            <span class="title">Registrarse</span>
-            
-            <label for="name" class="label">Usuario</label>
-            <input type="text" id="name" name="name" required class="input">
-            
-            <label for="email" class="label">Email</label>
-            <input type="email" id="email" name="email" required class="input">
-            
-            <label for="password" class="label">Contraseña</label>
-            <input type="password" id="password" name="password" required class="input">
-            
-            <button type="button" id="register-btn" class="submit" onclick="userRegister()">
-                Registrarse
-            </button>
-             
-            <span id="loading-spinner" style="display:none;">⏳</span>
-            
-            <p style="margin-top: 15px; font-size: 0.9em;">
-                ¿Ya tienes cuenta? <a href="login.html">Inicia sesión aquí</a>
-            </p>
-        </form>
-
-        <p id="message" class="msg"></p>
-    </main>
+                <p id="message" class="msg" style="text-align: center; margin-top: 10px;"></p>
+            </form>
+        </main>
+    </div>
 
     <script src="js/common/common.js"></script>
-    <script src="js/users/Register.js"></script>
+    <script src="js/users/register.js"></script>
 </body>
-
-
-
+</html>
                         
         </main>
-
-        <script src="js/users/register.js"></script>
-        <script src="js/common/common.js"></script> 
-    </body>
-</html>
