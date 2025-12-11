@@ -23,8 +23,7 @@ def listar_turnos_cliente(cliente_id):
     return jsonify(turnos), 200
 
 
-from api.models.Servicio import Servicio  # <--- Asegúrate de importar esto arriba
-# ... otros imports ...
+from api.models.Servicio import Servicio  
 
 @app.route('/turnos/disponibles', methods=['GET'])
 def obtener_horarios_disponibles():
@@ -37,14 +36,14 @@ def obtener_horarios_disponibles():
         return jsonify({"error": "Faltan parámetros"}), 400
 
     try:
-        # 2. Pedir al MODELO la información del servicio
+        #  Pedir al MODELO la información del servicio
         servicio = Servicio.obtener_por_id(servicio_id)
         
         if not servicio:
             return jsonify({"error": "Servicio no encontrado"}), 404
 
-        # 3. Pedir al MODELO Turno que calcule los horarios
-        # (La lógica pesada sigue estando en el modelo Turno, como debe ser)
+        # Pedir al MODELO Turno que calcule los horarios
+    
         horarios = Turno.buscar_horarios_disponibles(
             profesional_id, 
             fecha, 
@@ -55,3 +54,10 @@ def obtener_horarios_disponibles():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
+
+
+@app.route('/turnos/negocio/<int:negocio_id>', methods=['GET'])
+def listar_turnos_negocio(negocio_id):
+    turnos = Turno.obtener_por_negocio(negocio_id)
+    return jsonify(turnos), 200

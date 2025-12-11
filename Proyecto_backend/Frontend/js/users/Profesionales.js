@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (!formProfesional) return;
 
-    // --- 1. FUNCIÓN PARA LISTAR (Ahora acepta un ID opcional) ---
+    // 1. FUNCIÓN PARA LISTAR 
     function cargarProfesionales(negocioId = null) {
         listaProfDiv.innerHTML = '<p>Cargando...</p>';
         
@@ -37,7 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
     }
 
-    // --- 2. CARGAR NEGOCIOS Y EVENTO DE CAMBIO ---
+    //  CARGAR NEGOCIOS Y EVENTO DE CAMBIO 
     fetch(apiURL + '/negocios')
         .then(res => res.json())
         .then(data => {
@@ -50,13 +50,12 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
 
-    // CUANDO CAMBIAS EL NEGOCIO -> SE FILTRA LA LISTA DE ABAJO
     selectProfNegocio.addEventListener('change', () => {
         const id = selectProfNegocio.value;
         cargarProfesionales(id); // Recarga la lista filtrada
     });
 
-    // --- 3. CREAR PROFESIONAL ---
+    //  CREAR PROFESIONAL
     formProfesional.addEventListener('submit', async (e) => {
         e.preventDefault();
         

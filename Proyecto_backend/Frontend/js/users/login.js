@@ -49,11 +49,11 @@ function userLogin() {
             if (response.token) {
                 // Almacenar los datos de sesión en localStorage
                 localStorage.setItem("token", response.token);
-                localStorage.setItem("username", response.username || response.name); // Asegúrate que coincida con lo que devuelve python
+                localStorage.setItem("username", response.username || response.name); 
                 localStorage.setItem("id", response.id);
-                localStorage.setItem("rol", response.rol); // <--- NUEVO: Guardar el rol
+                localStorage.setItem("rol", response.rol); 
 
-                // Redirigir al usuario al dashboard
+                
                 window.location.href = "dashboard.html";
             } else {
                 // Mensaje en caso de que no se obtenga un token

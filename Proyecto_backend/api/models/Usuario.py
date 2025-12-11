@@ -165,7 +165,7 @@ class Usuario:
             conn = get_db_connection()
             cursor = conn.cursor(dictionary=True)
             
-            # 1. Buscamos por nombre de usuario E INCLUIMOS EL ROL
+            # Buscamos por nombre de usuario E INCLUIMOS EL ROL
             sql = "SELECT id, name, password, rol FROM usuario WHERE name = %s" # <--- CAMBIO AQUÍ
             cursor.execute(sql, (auth.username,))
             user_data = cursor.fetchone()
@@ -178,7 +178,7 @@ class Usuario:
             if not check_password_hash(password_bd, auth.password):
                 raise ValueError("Contraseña incorrecta")
             
-            # 5. Token Payload (Opcional: incluir rol en el token)
+            # . Token Payload
             token_payload = {
                 'name': user_data['name'], 
                 'id': user_data['id'],

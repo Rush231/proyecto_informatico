@@ -25,7 +25,7 @@ function userRegister(){
     spinner.style.display = 'inline-block';
     submitBtn.disabled = true;
 
-    // Configuración de la solicitud
+
     const requestOptions = {
         method: 'POST',
         headers: {
@@ -42,7 +42,7 @@ function userRegister(){
             messageElement.innerHTML = "¡Usuario creado con éxito! Redirigiendo...";
             messageElement.classList.add('success');
             
-            // 5. Redirección al login después de 1.5 segundos
+            //  Redirección al login después de 1.5 segundos
             setTimeout(() => {
                 window.location.href = "login.html";
             }, 1500);

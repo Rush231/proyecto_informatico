@@ -51,7 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 msg.textContent = "¡Negocio creado!";
                 msg.className = "msg success";
                 form.reset();
-                cargarNegocios(); // Actualizar lista
+                cargarNegocios(); 
             } else {
                 msg.textContent = "Error al crear";
                 msg.className = "msg error";

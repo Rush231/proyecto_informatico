@@ -12,9 +12,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const fechaTexto = document.getElementById('fecha-seleccionada-texto');
     const inputFinal = document.getElementById('input-fecha-final');
     
-    let myChart = null; // Instancia de ECharts
+    let myChart = null; 
 
-    // Iniciar Calendario ECharts
+ 
     function initCalendar() {
         if (myChart) myChart.dispose(); // Limpiar si ya existe
         myChart = echarts.init(chartDom);
@@ -66,9 +66,8 @@ const option = {
             series: [{
                 type: 'heatmap',
                 coordinateSystem: 'calendar',
-                // 2. CAMBIO AQUÍ: Estilo al pasar el mouse y al estar normal
                 itemStyle: {
-                    borderRadius: 4, // Bordes redondeados (opcional)
+                    borderRadius: 4, 
                     borderWidth: 1,
                     borderColor: '#e0e0e0'
                 },
@@ -85,21 +84,13 @@ const option = {
 
         myChart.setOption(option);
 
-        // Evento Click en el Calendario
         myChart.on('click', function (params) {
             if (params.componentType === 'series') {
-                // params.data[0] es la fecha en string 'YYYY-MM-DD' (si usamos data)
-                // Pero en un calendario vacío, params.name o params.value puede variar.
-                // ECharts devuelve la fecha en params.data[0] si hay datos, o necesitamos atrapar el click en la celda.
-                // Truco: Usar coordinateSystem click suele devolver la fecha.
+
             }
         });
         
-        // ECharts a veces es complejo con celdas vacías. 
-        // Una forma más simple es usar el evento global del 'calendar' si es posible, 
-        // o rellenar el calendario con datos "dummy" para todos los días del mes para que sean clickeables.
-        
-        // Rellenar días del mes para que sean interactivos
+
         const diasDelMes = [];
         const date = new Date(today.getFullYear(), today.getMonth(), 1);
         while (date.getMonth() === today.getMonth()) {
@@ -258,7 +249,7 @@ const option = {
         }
 
         const datosTurno = {
-            // Aquí unimos los dos mundos: Enviamos el ID del cliente seleccionado
+            // Aquí unimos, enviamos el ID del cliente seleccionado
             cliente_id: selectCliente.value, 
             profesional_id: selectProfesional.value,
             servicio_id: selectServicio.value,
@@ -276,6 +267,7 @@ const option = {
             if (response.ok) {
                 msgDiv.textContent = "¡Turno reservado con éxito!";
                 msgDiv.className = "msg success";
+                cargarTurnosReservados();
                 
                 // Resetear UI
                 formTurno.reset();
@@ -328,4 +320,65 @@ const option = {
 
     // Llamamos a la función al iniciar para que la lista esté lista
     cargarSelectClientes();
+
+
+
+    // --- NUEVO: Función para mostrar la lista de turnos ---
+    function cargarTurnosReservados() {
+        const listaDiv = document.getElementById('lista-turnos');
+        // Obtenemos el ID del negocio del usuario logueado (asumiendo que se guardó al login)
+        // Si no tienes el negocio_id en storage, puedes intentar obtenerlo del selectNegocio
+        const negocioId = sessionStorage.getItem('negocio_id') || selectNegocio.value;
+
+        if (!negocioId) {
+            listaDiv.innerHTML = '<p>Selecciona un negocio para ver los turnos.</p>';
+            return;
+        }
+
+        listaDiv.innerHTML = '<p>Cargando turnos...</p>';
+
+        fetch(`${apiURL}/turnos/negocio/${negocioId}`)
+            .then(res => {
+                if (!res.ok) throw new Error("Error en la API");
+                return res.json();
+            })
+            .then(turnos => {
+                if (turnos.length === 0) {
+                    listaDiv.innerHTML = '<p>No hay turnos registrados todavía.</p>';
+                    return;
+                }
+
+                let html = '<ul class="turnos-list" style="list-style:none; padding:0;">';
+                turnos.forEach(t => {
+                    // Elegimos un color según el estado
+                    let color = '#e3f2fd'; // Azul por defecto
+                    if(t.estado === 'cancelado') color = '#ffebee';
+                    
+                    html += `
+                        <li style="background:${color}; margin-bottom:10px; padding:15px; border-radius:8px; border-left: 5px solid #2196F3;">
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <div>
+                                    <strong>📅 ${t.fecha_hora}</strong><br>
+                                    👤 Cliente: ${t.cliente}<br>
+                                    ✂️ ${t.servicio} con ${t.profesional}
+                                </div>
+                                <span style="font-size:0.8em; text-transform:uppercase; font-weight:bold; color:#555;">
+                                    ${t.estado}
+                                </span>
+                            </div>
+                        </li>
+                    `;
+                });
+                html += '</ul>';
+                listaDiv.innerHTML = html;
+            })
+            .catch(err => {
+                console.error(err);
+                listaDiv.innerHTML = '<p>Error al cargar la lista.</p>';
+            });
+            
+    }  if(selectNegocio.value) {
+        cargarTurnosReservados();
+    }
+
 });

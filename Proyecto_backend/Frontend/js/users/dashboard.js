@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const userNameElement = document.getElementById('name');
     if(userNameElement) userNameElement.textContent = `Hola, ${name || 'Usuario'}`;
 
-    // --- 2. LÓGICA DE SEGURIDAD (OCULTAR COSAS) ---
+    // --- 2. LÓGICA DE SEGURIDAD ---
     // Si el rol NO es exactamente 'admin', borramos todo lo que diga 'admin-only'
     if (rol !== 'admin') {
         console.log("Acceso como EMPLEADO o ROL DESCONOCIDO. Ocultando funciones de admin.");
@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log("Acceso como ADMIN. Se muestra todo.");
     }
 
-    // --- 3. LÓGICA DE NAVEGACIÓN (SIDEBAR) ---
+    // --- LÓGICA DE NAVEGACIÓN  ---
     const menuItems = document.querySelectorAll('.menu-item');
     const sections = document.querySelectorAll('.view-section');
 
