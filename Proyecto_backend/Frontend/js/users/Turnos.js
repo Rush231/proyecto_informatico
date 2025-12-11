@@ -1,26 +1,20 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // Referencias existentes
+
     const selectNegocio = document.getElementById('select-negocio');
     const selectServicio = document.getElementById('select-servicio');
     const selectProfesional = document.getElementById('select-profesional');
     const formTurno = document.getElementById('form-turno');
     const msgDiv = document.getElementById('mensaje-reserva');
-    const selectCliente = document.getElementById('select-cliente-turno'); // Asegúrate que exista en tu HTML
-
-    // Nuevas Referencias para el calendario
+    const selectCliente = document.getElementById('select-cliente-turno');
     const chartDom = document.getElementById('calendario-echarts');
     const contenedorHorarios = document.getElementById('contenedor-horarios');
     const gridHorarios = document.getElementById('grid-horarios');
     const fechaTexto = document.getElementById('fecha-seleccionada-texto');
     const inputFinal = document.getElementById('input-fecha-final');
     
-    let myChart = null; // Instancia de ECharts
+    let myChart = null; 
 
-    // ------------------------------------------
-    // FUNCIONES AUXILIARES
-    // ------------------------------------------
-    
-    // Iniciar Calendario ECharts
+ 
     function initCalendar() {
         if (myChart) myChart.dispose(); // Limpiar si ya existe
         myChart = echarts.init(chartDom);
@@ -72,9 +66,8 @@ const option = {
             series: [{
                 type: 'heatmap',
                 coordinateSystem: 'calendar',
-                // 2. CAMBIO AQUÍ: Estilo al pasar el mouse y al estar normal
                 itemStyle: {
-                    borderRadius: 4, // Bordes redondeados (opcional)
+                    borderRadius: 4, 
                     borderWidth: 1,
                     borderColor: '#e0e0e0'
                 },
@@ -91,21 +84,13 @@ const option = {
 
         myChart.setOption(option);
 
-        // Evento Click en el Calendario
         myChart.on('click', function (params) {
             if (params.componentType === 'series') {
-                // params.data[0] es la fecha en string 'YYYY-MM-DD' (si usamos data)
-                // Pero en un calendario vacío, params.name o params.value puede variar.
-                // ECharts devuelve la fecha en params.data[0] si hay datos, o necesitamos atrapar el click en la celda.
-                // Truco: Usar coordinateSystem click suele devolver la fecha.
+
             }
         });
         
-        // ECharts a veces es complejo con celdas vacías. 
-        // Una forma más simple es usar el evento global del 'calendar' si es posible, 
-        // o rellenar el calendario con datos "dummy" para todos los días del mes para que sean clickeables.
-        
-        // Rellenar días del mes para que sean interactivos
+
         const diasDelMes = [];
         const date = new Date(today.getFullYear(), today.getMonth(), 1);
         while (date.getMonth() === today.getMonth()) {
@@ -176,13 +161,9 @@ const option = {
     }
 
 
-    // ------------------------------------------
-    // LÓGICA EXISTENTE (MODIFICADA)
-    // ------------------------------------------
-
     if (!selectNegocio) return;
 
-    // Cargar Negocios (Igual que antes)
+    // Cargar Negocios
     fetch(apiURL + '/negocios')
         .then(res => res.json())
         .then(data => {
@@ -195,7 +176,7 @@ const option = {
             });
         });
 
-    // Evento Cambio de Negocio (Igual que antes)
+    // Evento Cambio de Negocio 
     selectNegocio.addEventListener('change', (e) => {
         const negocioId = e.target.value;
         // ... (Tu código existente para limpiar selects) ...
@@ -238,7 +219,6 @@ const option = {
             });
     });
 
-    // NUEVO: Cuando se selecciona un profesional, mostramos el calendario
     selectProfesional.addEventListener('change', () => {
         if (selectProfesional.value && selectServicio.value) {
             setTimeout(initCalendar, 200); // Pequeño delay para asegurar renderizado
@@ -247,7 +227,6 @@ const option = {
         }
     });
     
-    // También si cambia el servicio (podría afectar la duración y disponibilidad)
     selectServicio.addEventListener('change', () => {
          if (selectProfesional.value && selectServicio.value) {
             setTimeout(initCalendar, 200);
@@ -257,23 +236,21 @@ const option = {
     });
 
 
-    // Enviar Turno (MODIFICADO para usar el nuevo input)
     formTurno.addEventListener('submit', async (e) => {
         e.preventDefault();
         
-        const fechaSeleccionada = inputFinal.value; // Usamos el input hidden
+        const fechaSeleccionada = inputFinal.value; 
 
-        if (!selectProfesional.value || !selectServicio.value || !fechaSeleccionada) {
-            msgDiv.textContent = "Por favor selecciona un horario del calendario.";
+        // Validación extra para el cliente
+        if (!selectCliente.value) {
+            msgDiv.textContent = "Debes seleccionar un cliente.";
             msgDiv.className = "msg error";
             return;
         }
 
-        msgDiv.textContent = "Procesando...";
-        msgDiv.className = "msg";
-
         const datosTurno = {
-            cliente_id: selectCliente ? selectCliente.value : null, // Ajustar según tu lógica de cliente
+            // Aquí unimos, enviamos el ID del cliente seleccionado
+            cliente_id: selectCliente.value, 
             profesional_id: selectProfesional.value,
             servicio_id: selectServicio.value,
             fecha_hora: fechaSeleccionada
@@ -290,6 +267,7 @@ const option = {
             if (response.ok) {
                 msgDiv.textContent = "¡Turno reservado con éxito!";
                 msgDiv.className = "msg success";
+                cargarTurnosReservados();
                 
                 // Resetear UI
                 formTurno.reset();
@@ -297,8 +275,6 @@ const option = {
                 inputFinal.value = '';
                 document.querySelectorAll('.slot-btn').forEach(b => b.classList.remove('selected'));
                 
-                // Opcional: Recargar lista de turnos si existe la función
-                // if (typeof cargarMisTurnos === 'function') cargarMisTurnos();
                 
             } else {
                 msgDiv.textContent = `Error: ${data.error || 'No se pudo reservar'}`;
@@ -310,4 +286,99 @@ const option = {
             console.error(error);
         }
     });
+
+    // Función para llenar el Select de Clientes ---
+    function cargarSelectClientes() {
+        if (!selectCliente) return;
+
+        fetch(apiURL + '/clientes')
+            .then(res => {
+                if (!res.ok) throw new Error("Error al obtener clientes");
+                return res.json();
+            })
+            .then(clientes => {
+                // Limpiar opciones previas
+                selectCliente.innerHTML = '<option value="">-- Selecciona un Cliente --</option>';
+                
+                if (clientes.length === 0) {
+                     const option = document.createElement('option');
+                     option.text = "No hay clientes registrados";
+                     selectCliente.appendChild(option);
+                     return;
+                }
+
+                // Rellenar con datos reales
+                clientes.forEach(cliente => {
+                    const option = document.createElement('option');
+                    option.value = cliente.id; // El ID es lo que enviaremos a la BD
+                    option.textContent = `${cliente.name} (${cliente.email})`;
+                    selectCliente.appendChild(option);
+                });
+            })
+            .catch(err => console.error("Error cargando clientes:", err));
+    }
+
+    // Llamamos a la función al iniciar para que la lista esté lista
+    cargarSelectClientes();
+
+
+
+    // --- NUEVO: Función para mostrar la lista de turnos ---
+    function cargarTurnosReservados() {
+        const listaDiv = document.getElementById('lista-turnos');
+        // Obtenemos el ID del negocio del usuario logueado (asumiendo que se guardó al login)
+        // Si no tienes el negocio_id en storage, puedes intentar obtenerlo del selectNegocio
+        const negocioId = sessionStorage.getItem('negocio_id') || selectNegocio.value;
+
+        if (!negocioId) {
+            listaDiv.innerHTML = '<p>Selecciona un negocio para ver los turnos.</p>';
+            return;
+        }
+
+        listaDiv.innerHTML = '<p>Cargando turnos...</p>';
+
+        fetch(`${apiURL}/turnos/negocio/${negocioId}`)
+            .then(res => {
+                if (!res.ok) throw new Error("Error en la API");
+                return res.json();
+            })
+            .then(turnos => {
+                if (turnos.length === 0) {
+                    listaDiv.innerHTML = '<p>No hay turnos registrados todavía.</p>';
+                    return;
+                }
+
+                let html = '<ul class="turnos-list" style="list-style:none; padding:0;">';
+                turnos.forEach(t => {
+                    // Elegimos un color según el estado
+                    let color = '#e3f2fd'; // Azul por defecto
+                    if(t.estado === 'cancelado') color = '#ffebee';
+                    
+                    html += `
+                        <li style="background:${color}; margin-bottom:10px; padding:15px; border-radius:8px; border-left: 5px solid #2196F3;">
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <div>
+                                    <strong>📅 ${t.fecha_hora}</strong><br>
+                                    👤 Cliente: ${t.cliente}<br>
+                                    ✂️ ${t.servicio} con ${t.profesional}
+                                </div>
+                                <span style="font-size:0.8em; text-transform:uppercase; font-weight:bold; color:#555;">
+                                    ${t.estado}
+                                </span>
+                            </div>
+                        </li>
+                    `;
+                });
+                html += '</ul>';
+                listaDiv.innerHTML = html;
+            })
+            .catch(err => {
+                console.error(err);
+                listaDiv.innerHTML = '<p>Error al cargar la lista.</p>';
+            });
+            
+    }  if(selectNegocio.value) {
+        cargarTurnosReservados();
+    }
+
 });

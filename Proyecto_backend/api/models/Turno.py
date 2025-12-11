@@ -106,53 +106,6 @@ class Turno:
             return sorted(list(set(horarios_disponibles)))
         
 
-            #  TURNOS YA OCUPADOS ese día
-            sql_turnos = "SELECT fecha_hora FROM Turno WHERE profesional_id = %s AND DATE(fecha_hora) = %s AND estado != 'cancelado'"
-            cursor.execute(sql_turnos, (profesional_id, fecha_str))
-            ocupados = [row['fecha_hora'] for row in cursor.fetchall()]
-
-            # BLOQUEOS (Excepciones/Feriados)
-            # Buscamos bloqueos que se solapen con este día
-            sql_bloqueos = """
-                SELECT fecha_inicio, fecha_fin FROM BloqueoAgenda 
-                WHERE profesional_id = %s 
-                AND (DATE(fecha_inicio) <= %s AND DATE(fecha_fin) >= %s)
-            """
-            cursor.execute(sql_bloqueos, (profesional_id, fecha_str, fecha_str))
-            bloqueos = cursor.fetchall()
-
-            # Algoritmo de Barrido (Generación de Slots)
-            horarios_disponibles = []
-            tiempo_actual = inicio_jornada
-            
-            while tiempo_actual + timedelta(minutes=duracion_minutos) <= fin_jornada:
-                tiempo_fin_turno = tiempo_actual + timedelta(minutes=duracion_minutos)
-                esta_libre = True
-
-                # A. Verificar colisión con Turnos existentes
-                for ocupado in ocupados:
-                    if ocupado == tiempo_actual: 
-                        esta_libre = False
-                        break
-
-                # B. Verificar colisión con Bloqueos/Excepciones
-                if esta_libre:
-                    for bloque in bloqueos:
-                        b_inicio = bloque['fecha_inicio']
-                        b_fin = bloque['fecha_fin']
-                        # Lógica de solapamiento de rangos
-                        if (tiempo_actual < b_fin) and (tiempo_fin_turno > b_inicio):
-                            esta_libre = False
-                            break
-                
-                if esta_libre:
-                    horarios_disponibles.append(tiempo_actual.strftime('%H:%M'))
-                
-        
-                tiempo_actual += timedelta(minutes=duracion_minutos)
-
-            return horarios_disponibles
-
         finally:
             conn.close()
 
@@ -176,7 +129,7 @@ class Turno:
             
             duracion = servicio['duracion']
 
-            # 2. Preparar datos para la búsqueda
+    
             # fecha_hora_str viene como "2023-11-20 10:00:00"
             try:
                 fecha_obj = datetime.strptime(fecha_hora_str, '%Y-%m-%d %H:%M:%S')
@@ -185,10 +138,10 @@ class Turno:
             except ValueError:
                 return False, "Formato de fecha inválido. Use AAAA-MM-DD HH:MM:SS"
 
-            # 3. Reutilizamos la lógica de buscar disponibles (el método que hicimos antes)
+            #  Reutilizamos la lógica de buscar disponibles
             horarios_disponibles = cls.buscar_horarios_disponibles(profesional_id, fecha_solo_str, duracion)
 
-            # 4. Validar
+            #  Validar
             if hora_solicitada in horarios_disponibles:
                 return True, "Horario disponible"
             else:
@@ -210,12 +163,12 @@ class Turno:
         servicio_id = datos.get('servicio_id')
         fecha_hora = datos.get('fecha_hora')
 
-        # 2. Validar reglas de negocio (Horarios, bloqueos, etc.)
+        #  Validar reglas de negocio (Horarios, bloqueos, etc.)
         es_valido, mensaje = cls.es_horario_valido(profesional_id, servicio_id, fecha_hora)
         if not es_valido:
             return False, mensaje # Retornamos el error de validación
 
-        # 3. Guardar en Base de Datos (SQL)
+        
         conn = None
         try:
             conn = get_db_connection()
@@ -331,3 +284,42 @@ class Turno:
         finally:
             if conn:
                 conn.close()
+
+
+    @classmethod
+    def obtener_por_negocio(cls, negocio_id):
+        # Busca todos los turnos asociados a un negocio específico
+        try:
+            connection = get_db_connection()
+            cursor = connection.cursor(dictionary=True)
+            
+            sql = """
+                SELECT 
+                    t.id, 
+                    t.fecha_hora, 
+                    t.estado,
+                    c.name as cliente,
+                    p.name as profesional,
+                    s.name as servicio
+                FROM Turno t
+                JOIN Cliente c ON t.cliente_id = c.id
+                JOIN Profesional p ON t.profesional_id = p.id
+                JOIN Servicio s ON t.servicio_id = s.id
+                WHERE s.negocio_id = %s
+                ORDER BY t.fecha_hora DESC
+            """
+            
+            cursor.execute(sql, (negocio_id,))
+            resultados = cursor.fetchall()
+            
+            # Convertimos fechas a string para que no falle el JSON
+            for row in resultados:
+                if row['fecha_hora']:
+                    row['fecha_hora'] = row['fecha_hora'].strftime('%Y-%m-%d %H:%M')
+                    
+            return resultados
+        except Exception as e:
+            print(f"Error obteniendo turnos negocio: {e}")
+            return []
+        finally:
+            if connection: connection.close()

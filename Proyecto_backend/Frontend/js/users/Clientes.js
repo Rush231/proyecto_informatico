@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (!form) return;
 
-    // 1. Función para cargar clientes (Asumiendo que tienes esta ruta GET)
+    // 1. Función para cargar clientes 
     function cargarClientes() {
         fetch(apiURL + '/clientes') 
             .then(res => {
