@@ -1,13 +1,11 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // Referencias existentes
+
     const selectNegocio = document.getElementById('select-negocio');
     const selectServicio = document.getElementById('select-servicio');
     const selectProfesional = document.getElementById('select-profesional');
     const formTurno = document.getElementById('form-turno');
     const msgDiv = document.getElementById('mensaje-reserva');
-    const selectCliente = document.getElementById('select-cliente-turno'); // Asegúrate que exista en tu HTML
-
-    // Nuevas Referencias para el calendario
+    const selectCliente = document.getElementById('select-cliente-turno');
     const chartDom = document.getElementById('calendario-echarts');
     const contenedorHorarios = document.getElementById('contenedor-horarios');
     const gridHorarios = document.getElementById('grid-horarios');
@@ -16,10 +14,6 @@ document.addEventListener('DOMContentLoaded', () => {
     
     let myChart = null; // Instancia de ECharts
 
-    // ------------------------------------------
-    // FUNCIONES AUXILIARES
-    // ------------------------------------------
-    
     // Iniciar Calendario ECharts
     function initCalendar() {
         if (myChart) myChart.dispose(); // Limpiar si ya existe
@@ -176,13 +170,9 @@ const option = {
     }
 
 
-    // ------------------------------------------
-    // LÓGICA EXISTENTE (MODIFICADA)
-    // ------------------------------------------
-
     if (!selectNegocio) return;
 
-    // Cargar Negocios (Igual que antes)
+    // Cargar Negocios
     fetch(apiURL + '/negocios')
         .then(res => res.json())
         .then(data => {
@@ -195,7 +185,7 @@ const option = {
             });
         });
 
-    // Evento Cambio de Negocio (Igual que antes)
+    // Evento Cambio de Negocio 
     selectNegocio.addEventListener('change', (e) => {
         const negocioId = e.target.value;
         // ... (Tu código existente para limpiar selects) ...
@@ -238,7 +228,6 @@ const option = {
             });
     });
 
-    // NUEVO: Cuando se selecciona un profesional, mostramos el calendario
     selectProfesional.addEventListener('change', () => {
         if (selectProfesional.value && selectServicio.value) {
             setTimeout(initCalendar, 200); // Pequeño delay para asegurar renderizado
@@ -247,7 +236,6 @@ const option = {
         }
     });
     
-    // También si cambia el servicio (podría afectar la duración y disponibilidad)
     selectServicio.addEventListener('change', () => {
          if (selectProfesional.value && selectServicio.value) {
             setTimeout(initCalendar, 200);
@@ -257,23 +245,21 @@ const option = {
     });
 
 
-    // Enviar Turno (MODIFICADO para usar el nuevo input)
     formTurno.addEventListener('submit', async (e) => {
         e.preventDefault();
         
-        const fechaSeleccionada = inputFinal.value; // Usamos el input hidden
+        const fechaSeleccionada = inputFinal.value; 
 
-        if (!selectProfesional.value || !selectServicio.value || !fechaSeleccionada) {
-            msgDiv.textContent = "Por favor selecciona un horario del calendario.";
+        // Validación extra para el cliente
+        if (!selectCliente.value) {
+            msgDiv.textContent = "Debes seleccionar un cliente.";
             msgDiv.className = "msg error";
             return;
         }
 
-        msgDiv.textContent = "Procesando...";
-        msgDiv.className = "msg";
-
         const datosTurno = {
-            cliente_id: selectCliente ? selectCliente.value : null, // Ajustar según tu lógica de cliente
+            // Aquí unimos los dos mundos: Enviamos el ID del cliente seleccionado
+            cliente_id: selectCliente.value, 
             profesional_id: selectProfesional.value,
             servicio_id: selectServicio.value,
             fecha_hora: fechaSeleccionada
@@ -297,8 +283,6 @@ const option = {
                 inputFinal.value = '';
                 document.querySelectorAll('.slot-btn').forEach(b => b.classList.remove('selected'));
                 
-                // Opcional: Recargar lista de turnos si existe la función
-                // if (typeof cargarMisTurnos === 'function') cargarMisTurnos();
                 
             } else {
                 msgDiv.textContent = `Error: ${data.error || 'No se pudo reservar'}`;
@@ -310,4 +294,38 @@ const option = {
             console.error(error);
         }
     });
+
+    // Función para llenar el Select de Clientes ---
+    function cargarSelectClientes() {
+        if (!selectCliente) return;
+
+        fetch(apiURL + '/clientes')
+            .then(res => {
+                if (!res.ok) throw new Error("Error al obtener clientes");
+                return res.json();
+            })
+            .then(clientes => {
+                // Limpiar opciones previas
+                selectCliente.innerHTML = '<option value="">-- Selecciona un Cliente --</option>';
+                
+                if (clientes.length === 0) {
+                     const option = document.createElement('option');
+                     option.text = "No hay clientes registrados";
+                     selectCliente.appendChild(option);
+                     return;
+                }
+
+                // Rellenar con datos reales
+                clientes.forEach(cliente => {
+                    const option = document.createElement('option');
+                    option.value = cliente.id; // El ID es lo que enviaremos a la BD
+                    option.textContent = `${cliente.name} (${cliente.email})`;
+                    selectCliente.appendChild(option);
+                });
+            })
+            .catch(err => console.error("Error cargando clientes:", err));
+    }
+
+    // Llamamos a la función al iniciar para que la lista esté lista
+    cargarSelectClientes();
 });
