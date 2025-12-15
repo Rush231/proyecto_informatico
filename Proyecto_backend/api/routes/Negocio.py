@@ -6,7 +6,7 @@ from api.db.db_config import mysql
 from api.models.registro_servicios import RegistroService
 from api.models.Profesional import Profesional
 
-@app.route('/negocio/', methods=['POST'])
+@app.route('/negocio', methods=['POST'])
 def crear_negocio():
     data = request.json
     conn = get_db_connection()
