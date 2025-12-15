@@ -41,7 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         try {
-            const response = await fetch(apiURL + '/negocio/crear-negocio', {
+            const response = await fetch(apiURL + '/negocio', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)

@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (!formProfesional) return;
 
-    // 1. FUNCIÓN PARA LISTAR 
+    //FUNCIÓN PARA LISTAR 
     function cargarProfesionales(negocioId = null) {
         listaProfDiv.innerHTML = '<p>Cargando...</p>';
         
@@ -71,7 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
             negocio_id: selectProfNegocio.value
         };
 
-        const response = await fetch(apiURL + '/crear-profesional', {
+        const response = await fetch(apiURL + '/profesional', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(nuevoProf)

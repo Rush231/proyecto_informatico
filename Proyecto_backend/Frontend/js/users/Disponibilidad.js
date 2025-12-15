@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         try {
-            const response = await fetch(apiURL + '/crear-disponibilidad', {
+            const response = await fetch(apiURL + '/disponibilidad', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)

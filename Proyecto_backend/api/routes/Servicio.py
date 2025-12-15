@@ -3,7 +3,7 @@ from flask import jsonify, request
 from api.db.db_config import get_db_connection
 from api.db.db_config import mysql
 from api.models.Servicio import Servicio
-@app.route('/crear-servicio', methods=['POST'])
+@app.route('/servicio', methods=['POST'])
 def crear_servicio():
     datos = request.json
     resultado, respuesta = Servicio.crear(datos)
@@ -34,7 +34,7 @@ def get_servicios():
          return jsonify({"error": str(e)}), 400
     
 
-@app.route('/servicio/actualizar/<int:id>', methods=['PUT'])
+@app.route('/servicio/<int:id>', methods=['PUT'])
 def actualizar_servicio(id):
     datos = request.json
     exito, mensaje = Servicio.actualizar(id, datos)

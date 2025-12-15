@@ -41,7 +41,7 @@ def get_usuario(id):
          return jsonify({"error": str(e)}), 400
     
 
-@app.route('/usuario/borrar/<int:id>', methods=['DELETE'])
+@app.route('/usuario/<int:id>', methods=['DELETE'])
 def eliminar_usuario(id):
     # Llamamos al método del modelo
     exito, mensaje = Usuario.eliminar(id)
