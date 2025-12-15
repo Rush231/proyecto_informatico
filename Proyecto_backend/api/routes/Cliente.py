@@ -23,7 +23,7 @@ def get_todos_clientes_por_id(negocio_id):
          return jsonify({"error": str(e)}), 400
     
 
-@app.route('/crear-cliente', methods=['POST'])
+@app.route('/crear', methods=['POST'])
 def crear_cliente():
     datos = request.json
     # 1. Validar datos básicos
@@ -53,7 +53,7 @@ def editar_cliente(id):
     return jsonify({"error": res}), 400
 
 # Eliminar Cliente (DELETE)
-@app.route('/eliminar-cliente/<int:id>', methods=['DELETE'])
+@app.route('/eliminar/<int:id>', methods=['DELETE'])
 def eliminar_cliente(id):
     exito, res = Cliente.eliminar(id)
     if exito:

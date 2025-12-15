@@ -16,7 +16,7 @@ def get_hay_disponibilidad():
 
 
 
-@app.route('/crear-disponibilidad', methods=['POST'])
+@app.route('/disponibilidad', methods=['POST'])
 def crear_disponibilidad():    
      try:
             datos = request.json
@@ -26,7 +26,7 @@ def crear_disponibilidad():
             return jsonify({"error": str(e)}), 400
      
 
-@app.route('/disponibilidad/actualizar/<int:id>', methods=['PUT'])
+@app.route('/disponibilidad/<int:id>', methods=['PUT'])
 def actualizar_disponibilidad(id):
     try:
         datos = request.json
@@ -36,7 +36,7 @@ def actualizar_disponibilidad(id):
         return jsonify({"error": str(e)}), 400    
     
 
-@app.route('/eliminar-disponibilidad/<int:id>', methods=['DELETE'])
+@app.route('/eliminar/<int:id>', methods=['DELETE'])
 def borrar_disponibilidad(id):
     try:
         exito, mensaje = Disponibilidad.eliminar(id)

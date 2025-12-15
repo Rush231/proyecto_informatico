@@ -190,6 +190,13 @@ const option = {
         if (myChart) myChart.dispose();
         myChart = null;
 
+        if (negocioId) {
+            cargarTurnosReservados(); // <--- ESTA ES LA CLAVE
+        } else {
+            // Si des-selecciona el negocio, limpiamos la lista
+            document.getElementById('lista-turnos').innerHTML = '';
+        }
+
         if (!negocioId) return;
 
         // Fetch Servicios
@@ -257,7 +264,7 @@ const option = {
         };
 
         try {
-            const response = await fetch(`${apiURL}/crear-turno`, {
+            const response = await fetch(`${apiURL}/turno`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(datosTurno)
@@ -287,7 +294,7 @@ const option = {
         }
     });
 
-    // Función para llenar el Select de Clientes ---
+    // Función para llenar el Select de Clientes
     function cargarSelectClientes() {
         if (!selectCliente) return;
 
@@ -323,7 +330,7 @@ const option = {
 
 
 
-    // --- NUEVO: Función para mostrar la lista de turnos ---
+    //  Función para mostrar la lista de turnos 
     function cargarTurnosReservados() {
         const listaDiv = document.getElementById('lista-turnos');
         // Obtenemos el ID del negocio del usuario logueado (asumiendo que se guardó al login)
@@ -337,7 +344,7 @@ const option = {
 
         listaDiv.innerHTML = '<p>Cargando turnos...</p>';
 
-        fetch(`${apiURL}/turnos/negocio/${negocioId}`)
+        fetch(`${apiURL}/turnos/${negocioId}`)
             .then(res => {
                 if (!res.ok) throw new Error("Error en la API");
                 return res.json();

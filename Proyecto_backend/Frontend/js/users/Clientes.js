@@ -5,7 +5,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (!form) return;
 
-    // 1. Función para cargar clientes 
     function cargarClientes() {
         fetch(apiURL + '/clientes') 
             .then(res => {
@@ -46,7 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         try {
-            const response = await fetch(apiURL + '/crear-cliente', {
+            const response = await fetch(apiURL + '/crear', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)

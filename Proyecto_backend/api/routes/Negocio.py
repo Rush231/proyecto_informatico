@@ -6,7 +6,7 @@ from api.db.db_config import mysql
 from api.models.registro_servicios import RegistroService
 from api.models.Profesional import Profesional
 
-@app.route('/negocio/crear-negocio', methods=['POST'])
+@app.route('/negocio/', methods=['POST'])
 def crear_negocio():
     data = request.json
     conn = get_db_connection()
@@ -30,7 +30,7 @@ def get_negocios():
     
 
 
-@app.route('/negocio/borrar/<int:id>', methods=['DELETE'])
+@app.route('/negocio/<int:id>', methods=['DELETE'])
 def borrar_negocio(id):
     exito, res = Negocio.borrar_negocio(id)
     return jsonify({"mensaje": res}), (200 if exito else 500)
