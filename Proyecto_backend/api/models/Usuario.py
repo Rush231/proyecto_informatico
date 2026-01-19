@@ -67,8 +67,8 @@ class Usuario:
                 conn.close()
 
     @classmethod
-    def get_todos_los_usuarios(cls):
-        query = "SELECT id, name AS nombre, email, negocio_id FROM Usuario"
+    def get_todos_los_usuarios(cls, negocio_id):
+        query = "SELECT id, name AS nombre, email, negocio_id FROM Usuario WHERE negocio_id = %s"
         conn = None
         try:
             conn = get_db_connection()
@@ -193,7 +193,10 @@ class Usuario:
                 'token': TOKEN,
                 'id': user_data['id'],
                 'name': user_data['name'],
-                'rol': user_data['rol']  # <--- IMPORTANTE: Enviar el rol al frontend
+                'rol': user_data['rol'], # <--- IMPORTANTE: Enviar el rol al frontend
+                'negocio_id': user_data('negocio_id'),
+                'exp': datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=2)
+
             }
 
         except Exception as e:

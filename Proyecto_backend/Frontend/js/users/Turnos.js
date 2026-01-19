@@ -344,7 +344,7 @@ const option = {
 
         listaDiv.innerHTML = '<p>Cargando turnos...</p>';
 
-        fetch(`${apiURL}/turnos/${negocioId}`)
+        fetch(`${apiURL}/turnos/negocio/${negocioId}`)
             .then(res => {
                 if (!res.ok) throw new Error("Error en la API");
                 return res.json();
@@ -366,8 +366,8 @@ const option = {
                             <div style="display:flex; justify-content:space-between; align-items:center;">
                                 <div>
                                     <strong>📅 ${t.fecha_hora}</strong><br>
-                                    👤 Cliente: ${t.cliente}<br>
-                                    ✂️ ${t.servicio} con ${t.profesional}
+                                    👤 Cliente:${t.cliente}<br>
+                                        ${t.servicio} con ${t.profesional}
                                 </div>
                                 <span style="font-size:0.8em; text-transform:uppercase; font-weight:bold; color:#555;">
                                     ${t.estado}

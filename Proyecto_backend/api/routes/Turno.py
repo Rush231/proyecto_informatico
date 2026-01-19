@@ -1,9 +1,11 @@
 from api import app
-from flask import jsonify, request
+from flask import jsonify, request,g
 from api.db.db_config import get_db_connection
 from api.db.db_config import mysql
 from api.models.Turno import Turno
 from api.models.Servicio import Servicio
+from api.models.seguridad import token_required
+
 @app.route('/turno', methods=['POST'])
 def crear_turno():
     datos = request.json
@@ -18,6 +20,7 @@ def crear_turno():
     
 
 @app.route('/turnos/<int:cliente_id>', methods=['GET'])
+@token_required
 def listar_turnos_cliente(cliente_id):
     turnos = Turno.obtener_por_cliente(cliente_id)
     return jsonify(turnos), 200
@@ -26,6 +29,7 @@ def listar_turnos_cliente(cliente_id):
 from api.models.Servicio import Servicio  
 
 @app.route('/turnos', methods=['GET'])
+@token_required
 def obtener_horarios_disponibles():
     # 1. Recibir datos
     profesional_id = request.args.get('profesional_id')
@@ -57,7 +61,9 @@ def obtener_horarios_disponibles():
     
 
 
-@app.route('/turnos/<int:negocio_id>', methods=['GET'])
-def listar_turnos_negocio(negocio_id):
-    turnos = Turno.obtener_por_negocio(negocio_id)
+@app.route('/turnos/negocio/<int:negocio_id>', methods=['GET'])
+@token_required
+def listar_turnos_negocio():
+    negocio_id_seguro = g.negocio_id
+    turnos = Turno.obtener_por_negocio(negocio_id_seguro)
     return jsonify(turnos), 200

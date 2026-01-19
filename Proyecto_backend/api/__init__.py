@@ -8,6 +8,10 @@ CORS(app)
 def  test():
     return jsonify({"mensaje": "ruta del index"})
 
+
+app.config['SECRET_KEY'] = "clave_api"
+
+
 import api.routes.Cliente
 import api.routes.Disponibilidad
 import api.routes.Usuario
