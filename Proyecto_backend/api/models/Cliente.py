@@ -65,12 +65,12 @@ class Cliente:
             if 'conn' in locals() and conn: conn.close()
 
     @classmethod
-    def obtener_todos_los_clientes(cls):
+    def obtener_todos_los_clientes(cls,negocio_id):
         try:
             conn = get_db_connection()
             cursor = conn.cursor(dictionary=True)
-            sql = "SELECT * FROM Cliente"
-            cursor.execute(sql)
+            sql = "SELECT * FROM Cliente WHERE negocio_id = %s"
+            cursor.execute(sql, (negocio_id,))
             rows = cursor.fetchall()
             return [cls(r['id'], r['name'], r['email'], r['negocio_id']).to_dict() for r in rows]
         except mysql.connector.Error:
