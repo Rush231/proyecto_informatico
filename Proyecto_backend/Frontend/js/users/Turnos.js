@@ -114,6 +114,7 @@ const option = {
     }
 
     function cargarHorarios(fecha) {
+        const token = localStorage.getItem('token');
         const profesionalId = selectProfesional.value;
         const servicioId = selectServicio.value;
 
@@ -128,7 +129,13 @@ const option = {
         inputFinal.value = ''; // Resetear selección
 
         
-        fetch(`${apiURL}/turnos?profesional_id=${profesionalId}&fecha=${fecha}&servicio_id=${servicioId}`)
+        fetch(`${apiURL}/turnos?profesional_id=${profesionalId}&fecha=${fecha}&servicio_id=${servicioId}`),
+        {
+        headers: {
+            'Authorization': `Bearer ${token}` // <--- Agregar esto
+        }
+    }
+        
             .then(res => res.json())
             .then(horarios => {
                 gridHorarios.innerHTML = '';
