@@ -52,9 +52,11 @@ function userLogin() {
                 localStorage.setItem("username", response.username || response.name); 
                 localStorage.setItem("id", response.id);
                 localStorage.setItem("rol", response.rol); 
+                localStorage.setItem("negocio_id", response.negocio_id);
 
                 
                 window.location.href = "dashboard.html";
+
             } else {
                 // Mensaje en caso de que no se obtenga un token
                 messageElement.innerHTML = response.message || "Error al iniciar sesión.";

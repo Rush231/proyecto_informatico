@@ -137,6 +137,11 @@ const option = {
                     gridHorarios.innerHTML = '<p>No hay horarios disponibles.</p>';
                     return;
                 }
+                // Verificación de seguridad
+            if (!Array.isArray(horarios)) {
+                gridHorarios.innerHTML = `<p>Error: ${horarios.error || 'Respuesta inválida del servidor'}</p>`;
+                return;
+            }
 
                 horarios.forEach(hora => {
                     const btn = document.createElement('button');
@@ -296,9 +301,23 @@ const option = {
 
     // Función para llenar el Select de Clientes
     function cargarSelectClientes() {
+        const negocioId = localStorage.getItem('negocio_id');
+        const token = localStorage.getItem('token');
+        if (!negocioId || negocioId === "null") {
+        console.error("No se encontró el ID del negocio. Redirigiendo...");
+        window.location.href = 'login.html';
+        return;
+    }
         if (!selectCliente) return;
 
-        fetch(apiURL + '/clientes')
+        fetch(`${apiURL}/clientes?negocio_id=${negocioId}`, {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+        }
+        })
+
             .then(res => {
                 if (!res.ok) throw new Error("Error al obtener clientes");
                 return res.json();
@@ -332,6 +351,7 @@ const option = {
 
     //  Función para mostrar la lista de turnos 
     function cargarTurnosReservados() {
+        const token = localStorage.getItem('token');
         const listaDiv = document.getElementById('lista-turnos');
         // Obtenemos el ID del negocio del usuario logueado (asumiendo que se guardó al login)
         // Si no tienes el negocio_id en storage, puedes intentar obtenerlo del selectNegocio

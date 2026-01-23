@@ -8,7 +8,11 @@ from api.db.db_config import mysql
 @app.route('/clientes', methods=['GET'])
 def get_todos_clientes():
     try:
-         lista = Cliente.obtener_todos_los_clientes()
+         negocio_id = request.args.get('negocio_id')
+         if not negocio_id or negocio_id == "null":
+            return jsonify({"error": "Falta el parámetro negocio_id"}), 400
+         
+         lista = Cliente.obtener_por_negocio(negocio_id)
          return jsonify(lista), 200
     except Exception as e:
          return jsonify({"error": str(e)}), 400

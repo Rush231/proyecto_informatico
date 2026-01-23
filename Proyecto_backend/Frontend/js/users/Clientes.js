@@ -5,15 +5,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (!form) return;
 
-    function cargarClientes() {
-        fetch(apiURL + '/clientes') 
+ function cargarClientes() {
+        // Obtenemos el ID del negocio del administrador logueado
+        const negocioId = localStorage.getItem('negocio_id'); 
+
+        // Enviamos el negocio_id como parámetro en la URL
+        fetch(`${apiURL}/clientes?negocio_id=${negocioId}`) 
             .then(res => {
-                if(!res.ok) throw new Error("No hay ruta GET /clientes");
+                if(!res.ok) throw new Error("Error al obtener clientes del negocio");
                 return res.json();
             })
             .then(data => {
                 if (data.length === 0) {
-                    listaDiv.innerHTML = '<p>No hay clientes registrados.</p>';
+                    listaDiv.innerHTML = '<p>No hay clientes registrados en su negocio.</p>';
                     return;
                 }
                 let html = '<ul style="list-style:none; padding:0;">';
@@ -26,8 +30,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 listaDiv.innerHTML = html;
             })
             .catch(err => {
-                console.log(err);
-                listaDiv.innerHTML = '<p>Lista no disponible (Falta ruta GET en Backend).</p>';
+                console.error(err);
+                listaDiv.innerHTML = '<p>Error: No se pudieron cargar los clientes.</p>';
             });
     }
 
@@ -39,29 +43,33 @@ document.addEventListener('DOMContentLoaded', () => {
         msg.textContent = "Registrando...";
         msg.className = "msg";
 
+        // Incluimos el negocio_id en los datos que enviamos al servidor
         const data = {
             name: document.getElementById('cli-nombre').value,
-            email: document.getElementById('cli-email').value
+            email: document.getElementById('cli-email').value,
+            negocio_id: localStorage.getItem('negocio_id') // <--- VITAL PARA SAAS
         };
 
         try {
-            const response = await fetch(apiURL + '/crear', {
+            // Asegúrate de que la ruta coincida con tu api/routes/Cliente.py
+            const response = await fetch(apiURL + '/clientes', { 
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
             });
 
             if (response.ok) {
-                msg.textContent = "Cliente registrado!";
+                msg.textContent = "¡Cliente registrado exitosamente!";
                 msg.className = "msg success";
                 form.reset();
-                cargarClientes();
+                cargarClientes(); // Recargamos la lista filtrada
             } else {
-                msg.textContent = "Error al registrar";
+                const errorInfo = await response.json();
+                msg.textContent = errorInfo.error || "Error al registrar";
                 msg.className = "msg error";
             }
         } catch (error) {
-            msg.textContent = "Error de conexión";
+            msg.textContent = "Error de conexión con el servidor";
             msg.className = "msg error";
         }
     });
