@@ -162,6 +162,10 @@ class Turno:
         profesional_id = datos.get('profesional_id')
         servicio_id = datos.get('servicio_id')
         fecha_hora = datos.get('fecha_hora')
+        negocio_id = datos.get('negocio_id')
+
+        if not negocio_id:
+            return False, "Error interno: Falta el ID del negocio."
 
         #  Validar reglas de negocio (Horarios, bloqueos, etc.)
         es_valido, mensaje = cls.es_horario_valido(profesional_id, servicio_id, fecha_hora)
@@ -175,10 +179,10 @@ class Turno:
             cursor = conn.cursor()
             
             sql = """
-                INSERT INTO Turno (cliente_id, profesional_id, servicio_id, fecha_hora, estado) 
-                VALUES (%s, %s, %s, %s, 'reservado')
+                INSERT INTO Turno (cliente_id, profesional_id, servicio_id, fecha_hora, estado, negocio_id) 
+                VALUES (%s, %s, %s, %s, 'reservado', %s)
             """
-            cursor.execute(sql, (cliente_id, profesional_id, servicio_id, fecha_hora))
+            cursor.execute(sql, (cliente_id, profesional_id, servicio_id, fecha_hora, negocio_id))
             conn.commit()
             
             nuevo_id = cursor.lastrowid
@@ -323,3 +327,26 @@ class Turno:
             return []
         finally:
             if connection: connection.close()
+
+
+            # En Turno.py (Ejemplo de reporte de ocupación)
+    @classmethod
+    def reporte_ocupacion_por_profesional(cls, negocio_id):
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor(dictionary=True)
+            query = """
+            SELECT p.name as profesional, COUNT(t.id) as cantidad_turnos
+            FROM Profesional p
+            LEFT JOIN Turno t ON p.id = t.profesional_id
+            WHERE p.negocio_id = %s
+            GROUP BY p.id
+        """
+            cursor.execute(query, (negocio_id,))
+            return cursor.fetchall()
+        except Exception as e:
+            print(f"Error en reporte de ocupación: {e}")
+            return []
+        finally:
+            if conn:
+                conn.close()

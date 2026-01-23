@@ -2,8 +2,8 @@ from api.db.db_config import get_db_connection
 import mysql.connector
 from werkzeug.security import generate_password_hash, check_password_hash
 from api import app
+from datetime import datetime, timezone, timedelta
 import jwt
-import datetime
 
 
 app.config['SECRET_KEY'] = "clave_api"
@@ -17,12 +17,13 @@ class Usuario:
         "password": str,}
 
     # Un único constructor que maneja los datos
-    def __init__(self, id, name, email, password=None, negocio_id=None):
+    def __init__(self, id, name, email, password=None, negocio_id=None, rol='empleado'):
         self.id = id
         self.name = name
         self.email = email
         self.password = password
         self.negocio_id = negocio_id
+        self.rol = rol
 
     def to_dict(self):
         return {
@@ -67,8 +68,8 @@ class Usuario:
                 conn.close()
 
     @classmethod
-    def get_todos_los_usuarios(cls):
-        query = "SELECT id, name AS nombre, email, negocio_id FROM Usuario"
+    def get_todos_los_usuarios(cls, negocio_id):
+        query = "SELECT id, name AS nombre, email, negocio_id FROM Usuario WHERE negocio_id = %s"
         conn = None
         try:
             conn = get_db_connection()
@@ -155,53 +156,100 @@ class Usuario:
 
         cursor.close()
         connection.close()
-    
-
 
     @classmethod
     def login(cls, auth):
+
         conn = None
         try:
             conn = get_db_connection()
             cursor = conn.cursor(dictionary=True)
             
-            # Buscamos por nombre de usuario E INCLUIMOS EL ROL
-            sql = "SELECT id, name, password, rol FROM usuario WHERE name = %s" # <--- CAMBIO AQUÍ
+            # 1. Buscamos usuario y traemos negocio_id y rol
+            sql = "SELECT id, name, password, rol, negocio_id FROM Usuario WHERE name = %s"
             cursor.execute(sql, (auth.username,))
             user_data = cursor.fetchone()
 
             if not user_data:
                 raise ValueError("Usuario no encontrado")
 
-            password_bd = user_data['password']
-            
-            if not check_password_hash(password_bd, auth.password):
+            if not check_password_hash(user_data['password'], auth.password):
                 raise ValueError("Contraseña incorrecta")
             
-            # . Token Payload
+            # 2. INYECTAMOS EL NEGOCIO_ID EN EL TOKEN (Crucial para SaaS)
             token_payload = {
-                'name': user_data['name'], 
                 'id': user_data['id'],
-                'rol': user_data['rol'], # <--- Útil para validaciones en backend
-                'exp': datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=2)
+                'name': user_data['name'], 
+                'rol': user_data['rol'],
+                'negocio_id': user_data['negocio_id'], # <--- AQUÍ ESTÁ LA MAGIA DEL SAAS
+                'exp': datetime.now(timezone.utc) + timedelta(hours=8)
             }
             
             TOKEN = jwt.encode(token_payload, app.config['SECRET_KEY'], algorithm="HS256")
             
-            # Retornamos el rol para que el JS lo pueda leer
             return {
                 'token': TOKEN,
                 'id': user_data['id'],
                 'name': user_data['name'],
-                'rol': user_data['rol']  # <--- IMPORTANTE: Enviar el rol al frontend
+                'rol': user_data['rol'],
+                'negocio_id': user_data['negocio_id']
             }
 
         except Exception as e:
             print(f"Error en login: {e}") 
             return None 
         finally:
-            if conn:
-                conn.close()
+            if conn: conn.close()
+
+    @classmethod
+    def get_usuarios_por_negocio(cls, negocio_id):
+        # CAMBIO: Antes traía todos (peligroso en SaaS). Ahora filtra por negocio.
+        query = "SELECT id, name AS nombre, email, rol FROM Usuario WHERE negocio_id = %s"
+        conn = None
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor(dictionary=True)
+            cursor.execute(query, (negocio_id,))
+            return cursor.fetchall()
+        except mysql.connector.Error as err:
+            print(f"Error: {err}")
+            return []
+        finally:
+            if conn: conn.close()
+
+    @classmethod
+    def registrar_usuario_saas(cls, datos):
+        # Este método asume que el Negocio YA existe o se crea en una transacción superior.
+        # Aquí solo insertamos el usuario vinculado.
+        username = datos['name']
+        password = datos['password']
+        email = datos['email']
+        negocio_id = datos.get('negocio_id')
+        rol = datos.get('rol', 'admin') # Primer usuario suele ser admin
+
+        if not negocio_id:
+            raise ValueError("Falta el ID del negocio")
+
+        hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
+
+        conn = get_db_connection()
+        try:
+            cursor = conn.cursor()
+            # Verificación básica de unicidad (puedes mejorarla)
+            cursor.execute("SELECT id FROM Usuario WHERE email = %s", (email,))
+            if cursor.fetchone():
+                raise ValueError("El email ya existe")
+
+            sql = "INSERT INTO Usuario (name, email, password, negocio_id, rol) VALUES (%s, %s, %s, %s, %s)"
+            cursor.execute(sql, (username, email, hashed_password, negocio_id, rol))
+            conn.commit()
+            return cursor.lastrowid
+        finally:
+            conn.close()
+    
+
+
+   
 
     @classmethod
     def eliminar(cls, id):

@@ -127,7 +127,7 @@ const option = {
         gridHorarios.innerHTML = '<p>Cargando...</p>';
         inputFinal.value = ''; // Resetear selección
 
-        // Llamar a la API
+        
         fetch(`${apiURL}/turnos?profesional_id=${profesionalId}&fecha=${fecha}&servicio_id=${servicioId}`)
             .then(res => res.json())
             .then(horarios => {
@@ -137,6 +137,11 @@ const option = {
                     gridHorarios.innerHTML = '<p>No hay horarios disponibles.</p>';
                     return;
                 }
+                // Verificación de seguridad
+            if (!Array.isArray(horarios)) {
+                gridHorarios.innerHTML = `<p>Error: ${horarios.error || 'Respuesta inválida del servidor'}</p>`;
+                return;
+            }
 
                 horarios.forEach(hora => {
                     const btn = document.createElement('button');
@@ -296,9 +301,23 @@ const option = {
 
     // Función para llenar el Select de Clientes
     function cargarSelectClientes() {
+        const negocioId = localStorage.getItem('negocio_id');
+        const token = localStorage.getItem('token');
+        if (!negocioId || negocioId === "null") {
+        console.error("No se encontró el ID del negocio. Redirigiendo...");
+        window.location.href = 'login.html';
+        return;
+    }
         if (!selectCliente) return;
 
-        fetch(apiURL + '/clientes')
+        fetch(`${apiURL}/clientes?negocio_id=${negocioId}`, {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+        }
+        })
+
             .then(res => {
                 if (!res.ok) throw new Error("Error al obtener clientes");
                 return res.json();
@@ -332,6 +351,7 @@ const option = {
 
     //  Función para mostrar la lista de turnos 
     function cargarTurnosReservados() {
+        const token = localStorage.getItem('token');
         const listaDiv = document.getElementById('lista-turnos');
         // Obtenemos el ID del negocio del usuario logueado (asumiendo que se guardó al login)
         // Si no tienes el negocio_id en storage, puedes intentar obtenerlo del selectNegocio
@@ -344,7 +364,7 @@ const option = {
 
         listaDiv.innerHTML = '<p>Cargando turnos...</p>';
 
-        fetch(`${apiURL}/turnos/${negocioId}`)
+        fetch(`${apiURL}/turnos/negocio/${negocioId}`)
             .then(res => {
                 if (!res.ok) throw new Error("Error en la API");
                 return res.json();
@@ -366,8 +386,8 @@ const option = {
                             <div style="display:flex; justify-content:space-between; align-items:center;">
                                 <div>
                                     <strong>📅 ${t.fecha_hora}</strong><br>
-                                    👤 Cliente: ${t.cliente}<br>
-                                    ✂️ ${t.servicio} con ${t.profesional}
+                                    👤 Cliente:${t.cliente}<br>
+                                        ${t.servicio} con ${t.profesional}
                                 </div>
                                 <span style="font-size:0.8em; text-transform:uppercase; font-weight:bold; color:#555;">
                                     ${t.estado}

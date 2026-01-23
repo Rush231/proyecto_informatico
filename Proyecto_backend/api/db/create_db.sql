@@ -17,8 +17,9 @@ CREATE TABLE Usuario (
     name VARCHAR(255) NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL, 
-    negocio_id INT,
     FOREIGN KEY (negocio_id) REFERENCES Negocio(id)
+    negocio_id INT NOT NULL, -- CAMBIO: Obligatorio para SaaS
+    FOREIGN KEY (negocio_id) REFERENCES Negocio(id) ON DELETE CASCADE
 );
 
 -- 3. Profesional (El que atiende)

@@ -20,7 +20,6 @@ class RegistroService:
 
         # . CREAR USUARIO (Identidad)
         # Instanciamos y guardamos. 
-        # Nota: Pasamos None en negocio_id porque en la nueva lógica se vincula después
         nuevo_usuario = Usuario(datos['name'], datos['email'], datos['password'])
         usuario_id = nuevo_usuario.registrar(cursor)
 

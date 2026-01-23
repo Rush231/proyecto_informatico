@@ -77,32 +77,32 @@ class Servicio:
         finally:
             conn.close()
 
-    @classmethod
-    def obtener_todos(cls):
-        conn = get_db_connection()
-        try:
-            cursor = conn.cursor(dictionary=True)
-            cursor.execute("SELECT * FROM Servicio")
-            rows = cursor.fetchall()
-            return [cls(r['id'], r['name'], r['duracion'], r['negocio_id']).to_dict() for r in rows]
-        except mysql.connector.Error:
-            return []
-        finally:
-            conn.close()
+#    @classmethod
+#    def obtener_todos(cls):
+#        conn = get_db_connection()
+#        try:
+#            cursor = conn.cursor(dictionary=True)
+#            cursor.execute("SELECT * FROM Servicio")
+#            rows = cursor.fetchall()
+#            return [cls(r['id'], r['name'], r['duracion'], r['negocio_id']).to_dict() for r in rows]
+#        except mysql.connector.Error:
+#            return []
+#        finally:
+#            conn.close()
 
 
-    @classmethod
-    def obtener_por_id(cls, id):
-        try:
-            conn = get_db_connection()
-            cursor = conn.cursor(dictionary=True)
-            cursor.execute("SELECT * FROM Servicio WHERE id = %s", (id,))
-            row = cursor.fetchone()
-            if row:
-                return cls(**row).to_dict()
-            return None
-        except mysql.connector.Error as err:
-            print(f"Error BD: {err}")
-            return None
-        finally:
-            if 'conn' in locals() and conn: conn.close()
+#    @classmethod
+#    def obtener_por_id(cls, id):
+#        try:
+#            conn = get_db_connection()
+#            cursor = conn.cursor(dictionary=True)
+#            cursor.execute("SELECT * FROM Servicio WHERE id = %s", (id,))
+#            row = cursor.fetchone()
+#            if row:
+#                return cls(**row).to_dict()
+#            return None
+#        except mysql.connector.Error as err:
+#            print(f"Error BD: {err}")
+#            return None
+#        finally:
+#            if 'conn' in locals() and conn: conn.close()
