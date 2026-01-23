@@ -127,7 +127,7 @@ const option = {
         gridHorarios.innerHTML = '<p>Cargando...</p>';
         inputFinal.value = ''; // Resetear selección
 
-        // Llamar a la API
+        
         fetch(`${apiURL}/turnos?profesional_id=${profesionalId}&fecha=${fecha}&servicio_id=${servicioId}`)
             .then(res => res.json())
             .then(horarios => {
