@@ -3,50 +3,45 @@ from flask import jsonify, request
 from api.db.db_config import get_db_connection
 from api.db.db_config import mysql
 from api.models.Profesional import Profesional
+from api.models.seguridad import token_required
 @app.route('/profesional', methods=['POST'])
-def crear_profesional():
+@token_required
+def crear_profesional(current_user):
     datos = request.json
+    
+    # Inyectamos el negocio del dueño
+    datos['negocio_id'] = current_user['negocio_id']
 
     es_valido, mensaje = Profesional.validar(datos)
     if not es_valido:
         return jsonify({"error": mensaje}), 400
-    conn = get_db_connection()
+        
     try:
-        nuevo = Profesional.crear(datos)
-        return jsonify(nuevo), 201
+        exito, resultado = Profesional.crear(datos)
+        if exito:
+            return jsonify(resultado), 201
+        return jsonify({"error": resultado}), 500
     except Exception as e:
-        return jsonify({"error": e.args[0]}), 500
-
-
-@app.route('/profesionales/<int:negocio_id>', methods=['GET'])
-def listar_profesionales(negocio_id):
-    lista = Profesional.obtener_por_negocio(negocio_id)
-    return jsonify(lista), 200
-
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/profesionales', methods=['GET'])
-def get_profesionales():
+@token_required
+def get_mis_profesionales(current_user):
+    # Obtenemos solo los de mi negocio
+    negocio_id = current_user['negocio_id']
     try:
-        # 1. Buscamos si viene un filtro en la URL (ej: ?negocio_id=5)
-        negocio_id = request.args.get('negocio_id')
-        
-        if negocio_id:
-            # Si hay filtro, usamos el método que busca por negocio
-            lista = Profesional.obtener_por_negocio(negocio_id)
-        else:
-            # Si NO hay filtro, traemos todos (para el panel de admin)
-            lista = Profesional.get_todos_los_profesionales()
-            
+        lista = Profesional.obtener_por_negocio(negocio_id)
         return jsonify(lista), 200
     except Exception as e:
          return jsonify({"error": str(e)}), 400
 
-@app.route('/turnos/profesional/<int:profesional_id>', methods=['GET'])
-def get_turnos_profesional(profesional_id):
-    turnos = Profesional.obtener_turnos(profesional_id)
-    return jsonify(turnos), 200
-
 @app.route('/profesional/<int:id>', methods=['DELETE'])
-def borrar_profesional(id):
-    exito, res = Profesional.eliminar(id)
-    return jsonify({"mensaje": res}), (200 if exito else 500)
+@token_required
+def borrar_profesional(current_user, id):
+    negocio_id = current_user['negocio_id']
+    
+    exito, res = Profesional.eliminar(id, negocio_id)
+    
+    if exito:
+        return jsonify({"mensaje": res}), 200
+    return jsonify({"error": res}), 403

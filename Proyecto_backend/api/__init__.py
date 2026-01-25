@@ -3,7 +3,8 @@ from flask import jsonify
 from flask_cors import CORS
  
 app = Flask(__name__)
-CORS(app)
+app.config['SECRET_KEY'] = "clave_api"
+CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
 @app.route('/')
 def  test():
     return jsonify({"mensaje": "ruta del index"})

@@ -1,6 +1,5 @@
 from api.db.db_config import get_db_connection
 import mysql.connector
-
 class Cliente:
     def __init__(self, id, name, email, negocio_id=None):
         self.id = id
@@ -79,14 +78,20 @@ class Cliente:
             if 'conn' in locals() and conn: conn.close()
 
     @classmethod
-    def actualizar(cls, id, datos):
+    def actualizar(cls, id, datos, negocio_id):
         try:
             conn = get_db_connection()
             cursor = conn.cursor()
-            
-            sql = "UPDATE Cliente SET name=%s, email=%s WHERE id=%s"
-            cursor.execute(sql, (datos['nombre'], datos['email'], id))
+
+
+
+            sql = "UPDATE Cliente SET name=%s, email=%s WHERE id=%s AND negocio_id=%s"
+            cursor.execute(sql, (datos['nombre'], datos['email'], id, negocio_id))
             conn.commit()
+            
+            if cursor.rowcount == 0:
+                return False, "No se encontró el cliente o no tienes permiso."
+                
             return True, "Cliente actualizado"
         except mysql.connector.Error as err:
             return False, f"Error BD: {err}"
@@ -94,12 +99,16 @@ class Cliente:
             if 'conn' in locals() and conn: conn.close()
 
     @classmethod
-    def eliminar(cls, id):
+    def eliminar(cls, id, negocio_id):
         try:
             conn = get_db_connection()
             cursor = conn.cursor()
-            cursor.execute("DELETE FROM Cliente WHERE id = %s", (id,))
+            cursor.execute("DELETE FROM Cliente WHERE id = %s AND negocio_id = %s", (id, negocio_id))
             conn.commit()
+            
+            if cursor.rowcount == 0:
+                return False, "No se pudo eliminar (Cliente no encontrado o permiso denegado)"
+                
             return True, "Cliente eliminado"
         except mysql.connector.Error as err:
             return False, f"Error BD: {err}"

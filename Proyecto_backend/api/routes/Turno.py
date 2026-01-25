@@ -4,9 +4,12 @@ from api.db.db_config import get_db_connection
 from api.db.db_config import mysql
 from api.models.Turno import Turno
 from api.models.Servicio import Servicio
+from api.models.seguridad import token_required
 @app.route('/turno', methods=['POST'])
-def crear_turno():
+@token_required
+def crear_turno(current_user):
     datos = request.json
+    datos['negocio_id'] = current_user['negocio_id']
 
     resultado, respuesta = Turno.crear(datos)
 
@@ -18,15 +21,15 @@ def crear_turno():
     
 
 @app.route('/turnos/<int:cliente_id>', methods=['GET'])
+
 def listar_turnos_cliente(cliente_id):
     turnos = Turno.obtener_por_cliente(cliente_id)
     return jsonify(turnos), 200
 
-
-from api.models.Servicio import Servicio  
-
 @app.route('/turnos', methods=['GET'])
-def obtener_horarios_disponibles():
+@token_required
+def obtener_horarios_disponibles(current_user):
+    
     # 1. Recibir datos
     profesional_id = request.args.get('profesional_id')
     fecha = request.args.get('fecha')

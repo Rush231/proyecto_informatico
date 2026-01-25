@@ -1,108 +1,114 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const formProfesional = document.getElementById('form-crear-profesional');
-    const selectProfNegocio = document.getElementById('prof-negocio');
-    const msgProf = document.getElementById('msg-profesional');
-    const listaProfDiv = document.getElementById('lista-profesionales-existentes');
-
-    if (!formProfesional) return;
-
-    //FUNCIÓN PARA LISTAR 
-    function cargarProfesionales(negocioId = null) {
-        listaProfDiv.innerHTML = '<p>Cargando...</p>';
-        
-        // Si hay ID, usamos el filtro. Si no, pedimos todos.
-        let url = apiURL + '/profesionales';
-        if (negocioId) {
-            url += `?negocio_id=${negocioId}`;
-        }
-
-        fetch(url)
-            .then(res => res.json())
-            .then(data => {
-                if (!data || data.length === 0) {
-                    listaProfDiv.innerHTML = '<p>No hay profesionales encontrados.</p>';
-                    return;
-                }
-                
-                let html = '<ul style="list-style:none; padding:0;">';
-                data.forEach(prof => {
-                    html += `
-                        <li style="padding:10px; border-bottom:1px solid #eee; display:flex; justify-content:space-between;">
-                            <span>👨‍⚕️ <strong>${prof.name}</strong> (${prof.especialidad || 'General'})</span>
-                            <button class="btn-borrar" onclick="borrarProf(${prof.id})">❌</button>
-                        </li>`;
-                });
-                html += '</ul>';
-                listaProfDiv.innerHTML = html;
-            });
+    const listaDiv = document.getElementById('lista-profesionales');
+    const form = document.getElementById('form-profesional');
+    
+    // 1. RECUPERAR EL TOKEN
+    const token = localStorage.getItem('token');
+    
+    // Si no hay token, fuera
+    if (!token) {
+        window.location.href = 'login.html';
+        return;
     }
 
-    //  CARGAR NEGOCIOS Y EVENTO DE CAMBIO 
-    fetch(apiURL + '/negocios')
-        .then(res => res.json())
+    function cargarProfesionales() {
+        // 2. ENVIAR TOKEN EN EL HEADER (Bearer ...)
+        fetch(`${apiURL}/profesionales`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}` // <--- LA CLAVE
+            }
+        })
+        .then(res => {
+            if (res.status === 401 || res.status === 403) {
+                alert("Sesión expirada");
+                window.location.href = 'login.html';
+                throw new Error("Token inválido");
+            }
+            return res.json();
+        })
         .then(data => {
-            selectProfNegocio.innerHTML = '<option value="">-- Ver Todos --</option>';
-            data.forEach(n => {
-                const opt = document.createElement('option');
-                opt.value = n.id;
-                opt.textContent = n.name;
-                selectProfNegocio.appendChild(opt);
+            if (data.error) {
+                listaDiv.innerHTML = `<p style="color:red">${data.error}</p>`;
+                return;
+            }
+            if (data.length === 0) {
+                listaDiv.innerHTML = '<p>No hay profesionales registrados.</p>';
+                return;
+            }
+            
+            let html = '<ul style="list-style:none; padding:0;">';
+            data.forEach(p => {
+                html += `
+                    <li style="padding:10px; border-bottom:1px solid #eee; display:flex; justify-content:space-between;">
+                        <span>🩺 <strong>${p.name}</strong> - ${p.especialidad || 'General'}</span>
+                        <button onclick="eliminarProfesional(${p.id})" style="color:red;">Eliminar</button>
+                    </li>`;
             });
-        });
+            html += '</ul>';
+            listaDiv.innerHTML = html;
+        })
+        .catch(err => console.error(err));
+    }
 
-    selectProfNegocio.addEventListener('change', () => {
-        const id = selectProfNegocio.value;
-        cargarProfesionales(id); // Recarga la lista filtrada
-    });
-
-    //  CREAR PROFESIONAL
-    formProfesional.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        
-        // Validación simple
-        if(!selectProfNegocio.value) {
-            alert("Por favor selecciona un negocio");
-            return;
-        }
-
-        const nuevoProf = {
-            name: document.getElementById('prof-nombre').value,
-            especialidad: document.getElementById('prof-especialidad').value,
-            negocio_id: selectProfNegocio.value
-        };
-
-        const response = await fetch(apiURL + '/profesional', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(nuevoProf)
-        });
-
-        if (response.ok) {
-            msgProf.textContent = "¡Creado!";
-            msgProf.className = "msg success";
-            formProfesional.reset();
-            // Recargar la lista del negocio actual
-            cargarProfesionales(nuevoProf.negocio_id);
-            // Restaurar el select para que siga en el mismo negocio
-            selectProfNegocio.value = nuevoProf.negocio_id;
-        } else {
-            msgProf.textContent = "Error al crear";
-            msgProf.className = "msg error";
-        }
-    });
-
-    
+    // Cargar al inicio
     cargarProfesionales();
-    
-    // Función global para el botón borrar (para que funcione el onclick del HTML string)
-    window.borrarProf = (id) => {
-        if(!confirm('¿Quieres eliminar a esta persona?')) return;
-        fetch(`${apiURL}/profesional/borrar/${id}`, { method: 'DELETE' })
-            .then(res => {
-                if(res.ok) { 
-                    // Recargar la lista según lo que esté seleccionado en el combo
-                    cargarProfesionales(selectProfNegocio.value); 
+
+    // 3. REGISTRAR PROFESIONAL (CON TOKEN)
+    if(form) {
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const data = {
+                name: document.getElementById('prof-nombre').value,
+                especialidad: document.getElementById('prof-especialidad').value
+                // El negocio_id lo pone el backend automáticamente
+            };
+
+            try {
+                const res = await fetch(`${apiURL}/profesional`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}` // <--- AQUÍ TAMBIÉN
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const respuesta = await res.json();
+                
+                if (res.ok) {
+                    alert("Profesional creado exitosamente");
+                    form.reset();
+                    cargarProfesionales();
+                } else {
+                    alert("Error: " + (respuesta.error || "No se pudo crear"));
+                }
+            } catch (error) {
+                alert("Error de conexión");
+            }
+        });
+    }
+
+    // Función Global para Eliminar
+    window.eliminarProfesional = async (id) => {
+        if(!confirm("¿Eliminar este profesional?")) return;
+        
+        try {
+            const res = await fetch(`${apiURL}/profesional/${id}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}` // <--- Y AQUÍ
                 }
             });
+            
+            if(res.ok) {
+                alert("Eliminado");
+                cargarProfesionales();
+            } else {
+                alert("Error al eliminar");
+            }
+        } catch(e) { console.error(e); }
     };
 });

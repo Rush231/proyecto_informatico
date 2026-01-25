@@ -1,6 +1,7 @@
 from api.db.db_config import get_db_connection
 import mysql.connector
 
+
 class Profesional:
     def __init__(self, id, name, especialidad, negocio_id, email=None):
         self.id = id
@@ -20,7 +21,6 @@ class Profesional:
 
     @classmethod
     def validar(cls, datos):
-        # Validamos que vengan los datos mínimos
         if not datos or not isinstance(datos, dict):
             return False, "Datos inválidos"
         if 'name' not in datos or not datos['name'].strip():
@@ -37,9 +37,9 @@ class Profesional:
         try:
             conn = get_db_connection()
             cursor = conn.cursor()
-            # Asumimos que la tabla tiene columnas: name, especialidad, negocio_id
+            # Asegúrate que las columnas en tu BD sean correctas
             sql = "INSERT INTO Profesional (name, especialidad, negocio_id) VALUES (%s, %s, %s)"
-            cursor.execute(sql, (datos['name'], datos.get('especialidad'), datos['negocio_id']))
+            cursor.execute(sql, (datos['name'], datos.get('especialidad', ''), datos['negocio_id']))
             conn.commit()
             return True, {"id": cursor.lastrowid, "mensaje": "Profesional creado"}
         except mysql.connector.Error as err:
@@ -62,18 +62,23 @@ class Profesional:
             if 'conn' in locals() and conn: conn.close()
 
     @classmethod
-    def eliminar(cls, id):
+    def eliminar(cls, id, negocio_id):
+        # CAMBIO: Seguridad con negocio_id
         try:
             conn = get_db_connection()
             cursor = conn.cursor()
-            cursor.execute("DELETE FROM Profesional WHERE id = %s", (id,))
+            sql = "DELETE FROM Profesional WHERE id = %s AND negocio_id = %s"
+            cursor.execute(sql, (id, negocio_id))
             conn.commit()
+            
+            if cursor.rowcount == 0:
+                return False, "No se pudo eliminar (No encontrado o permiso denegado)"
+                
             return True, "Profesional eliminado"
         except mysql.connector.Error as err:
             return False, f"Error BD: {err}"
         finally:
             if 'conn' in locals() and conn: conn.close()
-
 
 
     @classmethod
