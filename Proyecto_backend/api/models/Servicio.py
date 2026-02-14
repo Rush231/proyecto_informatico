@@ -52,7 +52,7 @@ class Servicio:
         conn = get_db_connection()
         try:
             cursor = conn.cursor()
-            sql = "UPDATE Servicio SET name = %s, duracion = %s WHERE id = %s"
+            sql = "UPDATE Servicio SET name = %s, duracion = %s WHERE id = %s AND negocio_id = %s"
             cursor.execute(sql, (datos['name'], datos['duracion'], id))
             conn.commit()
             return cursor.rowcount > 0, "Servicio actualizado"
