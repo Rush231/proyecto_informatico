@@ -91,7 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Función Global para Eliminar
+    
     window.eliminarProfesional = async (id) => {
         if(!confirm("¿Eliminar este profesional?")) return;
         
