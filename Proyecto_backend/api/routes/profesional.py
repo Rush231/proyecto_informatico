@@ -1,47 +1,54 @@
 from api import app
-from flask import jsonify, request
+from flask import jsonify, request, g
 from api.db.db_config import get_db_connection
 from api.db.db_config import mysql
 from api.models.Profesional import Profesional
 from api.models.seguridad import token_required
-@app.route('/profesional', methods=['POST'])
-@token_required
-def crear_profesional(current_user):
-    datos = request.json
-    
-    # Inyectamos el negocio del dueño
-    datos['negocio_id'] = current_user['negocio_id']
 
+
+# --- CREAR PROFESIONAL ---
+@app.route('/profesional', methods=['POST'])
+@token_required # <-- 3. Proteger la ruta
+def crear_profesional():
+    datos = request.json
     es_valido, mensaje = Profesional.validar(datos)
     if not es_valido:
         return jsonify({"error": mensaje}), 400
-        
     try:
-        exito, resultado = Profesional.crear(datos)
-        if exito:
-            return jsonify(resultado), 201
-        return jsonify({"error": resultado}), 500
+        # Inyectar el negocio_id desde el token por seguridad SaaS
+        datos['negocio_id'] = g.negocio_id 
+        nuevo = Profesional.crear(datos)
+        return jsonify(nuevo), 201
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@app.route('/profesionales', methods=['GET'])
-@token_required
-def get_mis_profesionales(current_user):
-    # Obtenemos solo los de mi negocio
-    negocio_id = current_user['negocio_id']
+# --- LISTAR PROFESIONALES ---
+@app.route('/profesionales', methods=['GET']) # <-- 2. Agregar OPTIONS
+@token_required # <-- 3. Proteger la ruta
+def get_profesionales():
     try:
-        lista = Profesional.obtener_por_negocio(negocio_id)
+        # Ya no buscamos en la URL, sacamos el negocio_id seguro del token
+        negocio_id = g.negocio_id
+        
+        if negocio_id:
+            lista = Profesional.obtener_por_negocio(negocio_id)
+        else:
+            lista = Profesional.get_todos_los_profesionales()
+            
         return jsonify(lista), 200
     except Exception as e:
          return jsonify({"error": str(e)}), 400
 
-@app.route('/profesional/<int:id>', methods=['DELETE'])
+# --- TURNOS DEL PROFESIONAL ---
+@app.route('/turnos/profesional/<int:profesional_id>', methods=['GET']) # <-- Agregar OPTIONS
 @token_required
-def borrar_profesional(current_user, id):
-    negocio_id = current_user['negocio_id']
-    
-    exito, res = Profesional.eliminar(id, negocio_id)
-    
-    if exito:
-        return jsonify({"mensaje": res}), 200
-    return jsonify({"error": res}), 403
+def get_turnos_profesional(profesional_id):
+    turnos = Profesional.obtener_turnos(profesional_id)
+    return jsonify(turnos), 200
+
+# --- BORRAR PROFESIONAL ---
+@app.route('/profesional/<int:id>', methods=['DELETE', 'OPTIONS']) # <-- Agregar OPTIONS
+@token_required
+def borrar_profesional(id):
+    exito, res = Profesional.eliminar(id)
+    return jsonify({"mensaje": res}), (200 if exito else 500)
