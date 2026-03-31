@@ -267,4 +267,5 @@ class Usuario:
         finally:
             if conn:
                 conn.close()
+
         
