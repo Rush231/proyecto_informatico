@@ -61,7 +61,7 @@ def obtener_horarios_disponibles():
 
 
 @app.route('/turnos/negocio/<int:negocio_id>', methods=['GET'])
-def listar_turnos_negocio():
-    negocio_id_seguro = g.negocio_id
-    turnos = Turno.obtener_por_negocio(negocio_id_seguro)
+def listar_turnos_negocio(negocio_id): # Se agrega negocio_id a los argumentos
+    # Ya no usamos g.negocio_id, usamos el parámetro que viene en la ruta
+    turnos = Turno.obtener_por_negocio(negocio_id)
     return jsonify(turnos), 200

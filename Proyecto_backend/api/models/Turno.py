@@ -177,13 +177,12 @@ class Turno:
         try:
             conn = get_db_connection()
             cursor = conn.cursor()
-            
             sql = """
-                INSERT INTO Turno (cliente_id, profesional_id, servicio_id, fecha_hora, estado, negocio_id) 
-                VALUES (%s, %s, %s, %s, 'reservado', %s)
+                INSERT INTO Turno (cliente_id, profesional_id, servicio_id, fecha_hora, estado) 
+                VALUES (%s, %s, %s, %s, 'reservado')
             """
-            cursor.execute(sql, (cliente_id, profesional_id, servicio_id, fecha_hora, negocio_id))
-            conn.commit()
+            # Quitamos negocio_id de la ejecución también
+            cursor.execute(sql, (cliente_id, profesional_id, servicio_id, fecha_hora))
             
             nuevo_id = cursor.lastrowid
             return True, {"id": nuevo_id, "mensaje": "Turno reservado con éxito"}

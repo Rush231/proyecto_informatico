@@ -129,13 +129,10 @@ const option = {
         inputFinal.value = ''; // Resetear selección
 
         
-        fetch(`${apiURL}/turnos?profesional_id=${profesionalId}&fecha=${fecha}&servicio_id=${servicioId}`),
-        {
-        headers: {
-            'Authorization': `Bearer ${token}` // <--- Agregar esto
-        }
-    }
-        
+        fetch(`${apiURL}/turnos?profesional_id=${profesionalId}&fecha=${fecha}&servicio_id=${servicioId}`, {
+            headers: {'Authorization': `Bearer ${token}`}
+        })
+                                                            
             .then(res => res.json())
             .then(horarios => {
                 gridHorarios.innerHTML = '';
@@ -196,6 +193,7 @@ const option = {
         selectProfesional.innerHTML = '<option value="">-- Selecciona Profesional --</option>';
         selectServicio.disabled = true;
         selectProfesional.disabled = true;
+        
         
         // Ocultar calendario si se cambia el negocio
         if (contenedorHorarios) contenedorHorarios.style.display = 'none';
@@ -272,7 +270,8 @@ const option = {
             cliente_id: selectCliente.value, 
             profesional_id: selectProfesional.value,
             servicio_id: selectServicio.value,
-            fecha_hora: fechaSeleccionada
+            fecha_hora: fechaSeleccionada,
+            negocio_id: selectNegocio.value
         };
 
         try {
