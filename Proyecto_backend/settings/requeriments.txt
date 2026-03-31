@@ -1,6 +1,6 @@
 flask 
 mysql-connector-python
 python-dotenv
-werkzeug
-PYJWT
+Werkzeug
+PyJWT
 flask-cors

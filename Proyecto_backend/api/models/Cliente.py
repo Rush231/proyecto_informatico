@@ -1,5 +1,5 @@
 from api.db.db_config import get_db_connection
-import mysql.connector
+import mysql.connector 
 
 class Cliente:
     def __init__(self, id, name, email, negocio_id=None):
