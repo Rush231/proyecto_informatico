@@ -9,11 +9,17 @@ from api.db.db_config import mysql
 def get_todos_clientes():
     try:
          negocio_id = request.args.get('negocio_id')
-         if not negocio_id or negocio_id == "null":
-            return jsonify({"error": "Falta el parámetro negocio_id"}), 400
          
-         lista = Cliente.obtener_por_negocio(negocio_id)
+         # Si el parámetro existe y es válido, filtramos por negocio
+         if negocio_id and negocio_id != "null":
+             lista = Cliente.obtener_por_negocio(negocio_id)
+             
+         # Si no enviaron el parámetro, traemos a TODOS los clientes sin filtro
+         else:
+             lista = Cliente.obtener_todos_los_clientes(negocio_id) # Pasamos None para que el método sepa que no hay filtro
+             
          return jsonify(lista), 200
+         
     except Exception as e:
          return jsonify({"error": str(e)}), 400
     
@@ -23,7 +29,7 @@ def get_todos_clientes_por_id(negocio_id):
     try:
          lista = Cliente.obtener_por_negocio(negocio_id)
          return jsonify(lista), 200
-    except Exception as e:
+    except Exception as e:  
          return jsonify({"error": str(e)}), 400
     
 
