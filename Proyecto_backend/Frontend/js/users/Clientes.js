@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const data = {
             name: document.getElementById('cli-nombre').value,
             email: document.getElementById('cli-email').value,
-            negocio_id: localStorage.getItem('negocio_id') // <--- VITAL PARA SAAS
+            negocio_id: localStorage.getItem('negocio_id')|| 1 // <--- VITAL PARA SAAS
         };
 
         try {
